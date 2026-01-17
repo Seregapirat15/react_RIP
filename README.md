@@ -1,150 +1,37 @@
-# React SPA для системы расчёта массы экзопланет
+# React SPA — Система расчёта массы экзопланет
 
-Лабораторная работа №5 - Разработка базового SPA на React
+**Лабораторная работа №5** | Студент: Номоконов Владислав | Группа: ИУ5-53Б
 
-## Описание
-
-Приложение предоставляет интерфейс для работы с астрономическими инструментами (спектроскопами) и расчётом массы экзопланет. Включает три основные страницы:
-
-1. **Список инструментов** (`/`) - каталог астрономических инструментов с фильтрацией
-2. **Детали инструмента** (`/instrument/:id`) - подробная информация об инструменте
-3. **Расчёт массы экзопланеты** (`/calculation/:id`) - создание заявки и расчёт
-
-## Технологии
-
-- **React 18** - библиотека для создания пользовательских интерфейсов
-- **TypeScript** - типизированный JavaScript
-- **React Router DOM** - клиентская маршрутизация
-- **React-Bootstrap** - UI компоненты на основе Bootstrap 5
-- **Vite** - сборщик и dev-сервер
-
-## Особенности реализации
-
-### ✅ Требования выполнены
-
-- **Три страницы**: список инструментов, детали инструмента, расчёт массы
-- **Navbar** с использованием React-Bootstrap
-- **Breadcrumbs** - самописная навигационная цепочка
-- **Фильтры** на странице инструментов:
-  - Поиск по названию
-  - Фильтр по типу (наземный/космический)
-  - Фильтрация выполняется на бэкенде
-- **Fetch API** - AJAX запросы
-- **Проксирование** через Vite для решения CORS
-- **Изображения по умолчанию** для карточек без картинок
-- **Корзина** с счётчиком выбранных инструментов
-- **Управление заявками** - добавление, удаление, формирование
-
-### Архитектура
-
-```
-src/
-├── components/          # Переиспользуемые компоненты
-│   ├── NavigationBar.tsx   # Navbar с React-Bootstrap
-│   └── Breadcrumbs.tsx     # Самописные breadcrumbs
-├── pages/              # Страницы приложения
-│   ├── InstrumentsPage.tsx      # Список инструментов
-│   ├── InstrumentDetailPage.tsx # Детали инструмента
-│   └── CalculationPage.tsx      # Расчёт массы экзопланеты
-├── services/           # API сервисы
-│   └── api.ts             # Fetch запросы к бэкенду
-├── types/              # TypeScript типы
-│   └── index.ts           # Типы для инструментов, заявок, пользователей
-├── App.tsx             # Главный компонент приложения
-└── main.tsx            # Точка входа
-```
-
-## Установка и запуск
-
-### Установка зависимостей
+## Запуск
 
 ```bash
 npm install
-```
-
-### Запуск в режиме разработки
-
-```bash
 npm run dev
 ```
 
-Приложение будет доступно по адресу: http://localhost:3000
+Приложение: http://localhost:3000
 
-### Сборка для продакшена
+## Структура
 
-```bash
-npm run build
+```
+src/
+├── components/     # NavigationBar, Breadcrumbs
+├── pages/          # HomePage, InstrumentsPage, InstrumentDetailPage, CalculationPage
+├── services/       # api.ts (fetch запросы)
+├── types/          # TypeScript интерфейсы
+└── data/           # Mock данные (fallback)
 ```
 
-Результат будет в папке `dist/`.
+## Технологии
 
-## Конфигурация прокси
+- React 18 + TypeScript
+- React Router DOM
+- React-Bootstrap
+- Vite (сборка + proxy)
 
-В `vite.config.ts` настроено проксирование для решения проблемы CORS:
+## Особенности
 
-```typescript
-proxy: {
-  '/api': {
-    target: 'http://localhost:8081',
-    changeOrigin: true,
-  },
-}
-```
-
-При запросе к `/api/services` Vite автоматически проксирует его на `http://localhost:8081/api/services`.
-
-## API Endpoints
-
-### Инструменты
-- `GET /api/services` - список инструментов с фильтрацией
-- `GET /api/services/{id}` - получение одного инструмента
-
-### Заявки (требует авторизации)
-- `GET /api/orders/cart` - иконка корзины
-- `GET /api/orders` - список заявок пользователя
-- `GET /api/orders/{id}` - получение заявки
-- `POST /api/orders/services` - добавление инструмента в заявку
-- `DELETE /api/orders/{order_id}/services/{service_id}` - удаление инструмента
-- `PUT /api/orders/{id}/form` - формирование заявки
-- `DELETE /api/orders/{id}` - удаление заявки
-
-### Авторизация
-- `POST /api/auth/register` - регистрация
-- `POST /api/auth/login` - вход
-- `POST /api/auth/logout` - выход
-- `GET /api/auth/me` - данные текущего пользователя
-
-## Структура данных
-
-### Instrument (Инструмент)
-```typescript
-{
-  id: number;
-  name: string;
-  full_name: string;
-  type: 'ground' | 'space';
-  description: string;
-  accuracy: number;
-  accuracy_unit: string;
-  image_url?: string;
-  // ... другие поля
-}
-```
-
-### Order (Заявка)
-```typescript
-{
-  id: number;
-  status: 'черновик' | 'сформирован' | 'завершён' | 'отклонён';
-  services?: OrderService[];
-  total_mass?: number;
-  // ... другие поля
-}
-```
-
-## Автор
-
-Студент: Номоконов Владислав
-Группа: ИУ5-53Б
-Курс: РИП
-Лабораторная работа №5
+- ✅ Фильтрация на бэкенде (поиск, тип, точность, дата)
+- ✅ Mock fallback при недоступности сервера
+- ✅ Самописные Breadcrumbs
+- ✅ CORS через Vite proxy (`/api` → `localhost:8081`)
