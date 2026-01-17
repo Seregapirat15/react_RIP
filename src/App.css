@@ -1,0 +1,228 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0f0f2f 100%);
+  min-height: 100vh;
+  color: #e0e0e0;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.main-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Кнопки */
+.btn-cosmic {
+  background: linear-gradient(45deg, #4facfe, #00f2fe);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cosmic:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+.btn-danger-cosmic {
+  background: linear-gradient(45deg, #ff4757, #ff6b7a);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-danger-cosmic:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(255, 71, 87, 0.4);
+}
+
+/* Карточки */
+.card-cosmic {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.card-cosmic:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border-color: rgba(79, 172, 254, 0.3);
+}
+
+/* Поля ввода */
+.input-cosmic {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 12px 15px;
+  color: white;
+  font-size: 1em;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.input-cosmic:focus {
+  outline: none;
+  border-color: #4facfe;
+  box-shadow: 0 0 15px rgba(79, 172, 254, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.input-cosmic::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Секции */
+.section-cosmic {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 25px;
+}
+
+/* Заголовки */
+.title-cosmic {
+  font-size: 1.5em;
+  font-weight: 600;
+  color: #4facfe;
+  margin-bottom: 20px;
+}
+
+/* Сетка инструментов */
+.instruments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+}
+
+/* Результат расчёта */
+.result-value {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: #4facfe;
+  text-align: center;
+  margin: 20px 0;
+}
+
+/* Лейблы */
+.label-cosmic {
+  color: #aaa;
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
+/* Значения */
+.value-cosmic {
+  color: white;
+  font-weight: 500;
+  font-size: 1.1em;
+}
+
+/* Кнопка корзины */
+.cart-btn {
+  position: relative;
+  background: linear-gradient(45deg, #4facfe, #00f2fe);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+.cart-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cart-count {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85em;
+  transition: all 0.3s ease;
+}
+
+/* Алерты */
+.alert-cosmic {
+  background: rgba(79, 172, 254, 0.1);
+  border: 1px solid rgba(79, 172, 254, 0.3);
+  border-radius: 10px;
+  padding: 15px 20px;
+  color: #4facfe;
+}
+
+.alert-success-cosmic {
+  background: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #28a745;
+}
+
+.alert-danger-cosmic {
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #dc3545;
+}
+
+/* Спиннер */
+.spinner-cosmic {
+  border: 3px solid rgba(79, 172, 254, 0.1);
+  border-top: 3px solid #4facfe;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 50px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .instruments-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-container {
+    padding: 10px;
+  }
+}
