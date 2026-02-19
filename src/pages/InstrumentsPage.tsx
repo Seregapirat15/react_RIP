@@ -101,7 +101,7 @@ const InstrumentsPage = () => {
     try {
       await addToOrder({
         service_id: instrumentId,
-        exoplanet_name: 'Новая экзопланета',
+        exoplanet_name: 'Не указана',
         star_mass: 1.0,
         orbital_period: 365.0,
         velocity_amplitude: 10.0,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Form, Button, Alert } from 'react-bootstrap';
-import { fetchOrderById, fetchCartIcon, removeFromOrder, formOrder, deleteOrder, isAuthenticated } from '../services/api';
+import { fetchOrderById, fetchCartIcon, removeFromOrder, updateOrderService, formOrder, deleteOrder, isAuthenticated } from '../services/api';
 import { Order } from '../types';
 import './CalculationPage.css';
 
@@ -55,6 +55,17 @@ const CalculationPage = () => {
       if (orderId && orderId > 0) {
         const data = await fetchOrderById(orderId);
         setOrder(data);
+        if (data.services?.length && data.status === 'черновик') {
+          const first = data.services[0];
+          setFormData({
+            exoplanet_name: first.exoplanet_name || '',
+            star_mass: String(first.star_mass ?? 1),
+            orbital_period: String(first.orbital_period ?? 365),
+            velocity_amplitude: String(first.velocity_amplitude ?? 10),
+            inclination: String(first.inclination ?? 90),
+            eccentricity: String(first.eccentricity ?? 0),
+          });
+        }
       } else {
         setError('no_order');
       }
@@ -79,6 +90,16 @@ const CalculationPage = () => {
   const handleFormOrder = async () => {
     if (!order) return;
     try {
+      const params = {
+        exoplanet_name: formData.exoplanet_name.trim() || 'Не указана',
+        star_mass: parseFloat(formData.star_mass) || 1,
+        orbital_period: parseFloat(formData.orbital_period) || 365,
+        velocity_amplitude: parseFloat(formData.velocity_amplitude) || 10,
+        inclination: parseFloat(formData.inclination) || 90,
+      };
+      for (const os of order.services || []) {
+        await updateOrderService(order.id, os.service_id, params);
+      }
       await formOrder(order.id);
       showMsg('Заявка сформирована!', 'success');
       loadOrder();

@@ -91,6 +91,18 @@ const NavigationBar = () => {
                 Расчёт
               </Nav.Link>
 
+              {authenticated && (
+                <Nav.Link
+                  as={Link}
+                  to="/orders"
+                  className={`nav-link-cosmic ${isActive('/orders') ? 'active' : ''}`}
+                  onClick={handleClose}
+                >
+                  <span className="nav-icon">&#128203;</span>
+                  Мои заявки
+                </Nav.Link>
+              )}
+
               {authenticated ? (
                 <Nav.Link as="button" className="nav-link-cosmic nav-link-logout" onClick={handleLogout}>
                   <span className="nav-icon">&#128682;</span>

@@ -1,0 +1,242 @@
+.orders-page {
+  padding: 20px 0;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.orders-title {
+  font-size: 2em;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 24px;
+}
+
+/* Фильтры */
+.orders-filters {
+  margin-bottom: 24px;
+}
+
+.orders-filters .label-cosmic {
+  color: #e0e0e0;
+}
+
+.orders-filters .input-cosmic,
+.orders-filters .form-select,
+.orders-filters .form-control {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+.orders-filters .form-select option,
+.orders-filters select option {
+  background: #1a1a3a;
+  color: #e0e0e0;
+}
+
+.orders-filters .btn-outline-secondary {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #e0e0e0 !important;
+}
+
+.orders-filters .btn-outline-secondary:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+}
+
+/* Список заявок */
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Карточка заявки */
+.order-card {
+  padding: 24px;
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.order-card-title {
+  font-size: 1.4em;
+  font-weight: 700;
+  margin: 0;
+}
+
+.order-card-title a {
+  color: #4facfe;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.order-card-title a:hover {
+  color: #00f2fe;
+}
+
+/* Статус-бейдж */
+.status-badge {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.черновик {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+}
+
+.status-badge.сформирован {
+  background: rgba(79, 172, 254, 0.15);
+  color: #4facfe;
+}
+
+.status-badge.завершён {
+  background: rgba(40, 167, 69, 0.15);
+  color: #28a745;
+}
+
+.status-badge.отклонён {
+  background: rgba(220, 53, 69, 0.15);
+  color: #dc3545;
+}
+
+/* Мета-информация */
+.order-card-meta {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta-label {
+  font-size: 0.75em;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.meta-value {
+  font-size: 0.95em;
+  color: #e0e0e0;
+  font-weight: 500;
+}
+
+.meta-highlight .meta-value {
+  color: #4facfe;
+  font-weight: 700;
+}
+
+.mass-value {
+  font-size: 1.05em;
+}
+
+/* Таблица м-м */
+.order-card-services {
+  overflow-x: auto;
+}
+
+.mm-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.88em;
+}
+
+.mm-table thead th {
+  color: #888;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.78em;
+  letter-spacing: 0.5px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.mm-table tbody tr {
+  transition: background 0.2s;
+}
+
+.mm-table tbody tr:hover {
+  background: rgba(79, 172, 254, 0.04);
+}
+
+.mm-table td {
+  padding: 10px;
+  color: #ccc;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.mm-image-cell {
+  width: 48px;
+  padding-right: 4px !important;
+}
+
+.mm-thumb {
+  width: 40px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #1a1a3a;
+}
+
+.mm-name {
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+}
+
+.mm-result {
+  text-align: right;
+  font-weight: 600;
+}
+
+.mass-calculated {
+  color: #28a745;
+}
+
+.mass-pending {
+  color: #555;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .order-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .order-card-meta {
+    gap: 16px;
+  }
+
+  .mm-table {
+    font-size: 0.8em;
+  }
+
+  .mm-thumb {
+    width: 32px;
+    height: 22px;
+  }
+}

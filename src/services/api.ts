@@ -138,6 +138,28 @@ export async function updateOrder(orderId: number, data: Partial<Order>): Promis
   });
 }
 
+// Обновление параметров м-м (инструмента в заявке)
+export async function updateOrderService(
+  orderId: number,
+  serviceId: number,
+  data: { exoplanet_name: string; star_mass: number; orbital_period: number; velocity_amplitude: number; inclination: number; comment?: string; other_info?: string }
+): Promise<void> {
+  return apiRequest(`/orders/${orderId}/services/${serviceId}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      order_id: orderId,
+      service_id: serviceId,
+      exoplanet_name: data.exoplanet_name,
+      star_mass: data.star_mass,
+      orbital_period: data.orbital_period,
+      velocity_amplitude: data.velocity_amplitude,
+      inclination: data.inclination,
+      comment: data.comment,
+      other_info: data.other_info,
+    }),
+  });
+}
+
 // Формирование заявки
 export async function formOrder(orderId: number): Promise<Order> {
   return apiRequest(`/orders/${orderId}/form`, {

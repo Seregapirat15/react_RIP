@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import InstrumentsPage from './pages/InstrumentsPage';
 import InstrumentDetailPage from './pages/InstrumentDetailPage';
 import CalculationPage from './pages/CalculationPage';
+import OrdersPage from './pages/OrdersPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import { Container } from 'react-bootstrap';
@@ -24,6 +25,7 @@ function App() {
             <Route path="/instrument/:id" element={<InstrumentDetailPage />} />
             <Route path="/calculation" element={<CalculationPage />} />
             <Route path="/calculation/:id" element={<CalculationPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Routes>

@@ -10,6 +10,7 @@ const LABELS: Record<string, string> = {
   instruments: 'Инструменты',
   instrument: 'Детали инструмента',
   calculation: 'Заявка',
+  orders: 'Мои заявки',
   login: 'Вход',
   register: 'Регистрация',
 };
