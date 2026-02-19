@@ -7,7 +7,8 @@ import { MOCK_INSTRUMENTS } from '../data/mockData';
 import './InstrumentDetailPage.css';
 
 const DEFAULT_IMAGE = '/placeholder-service.svg';
-const DEFAULT_VIDEO = 'https://www.w3schools.com/html/mov_bbb.mp4';
+/** Видео по умолчанию для всех карточек (как у id 2) */
+const DEFAULT_VIDEO = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
 
 const InstrumentDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -73,6 +74,7 @@ const InstrumentDetailPage = () => {
         {/* Видео секция — портрет в стиле Vibes/TikTok */}
         <div className="vibes-video-section">
           <video
+            key={instrument.id}
             ref={videoRef}
             className="vibes-video"
             autoPlay
@@ -81,7 +83,7 @@ const InstrumentDetailPage = () => {
             playsInline
             poster={instrument.image_url || DEFAULT_IMAGE}
           >
-            <source src={DEFAULT_VIDEO} type="video/mp4" />
+            <source src={instrument.video_url || DEFAULT_VIDEO} type="video/mp4" />
             Ваш браузер не поддерживает видео
           </video>
 

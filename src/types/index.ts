@@ -21,6 +21,7 @@ export interface Instrument {
   stability: string;
   instrument_type: string;
   image_url?: string;
+  video_url?: string;
   is_deleted: boolean;
   created_at: string;
 }
