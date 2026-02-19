@@ -29,9 +29,3 @@ src/
 - React-Bootstrap
 - Vite (сборка + proxy)
 
-## Особенности
-
-- ✅ Фильтрация на бэкенде (поиск, тип, точность, дата)
-- ✅ Mock fallback при недоступности сервера
-- ✅ Самописные Breadcrumbs
-- ✅ CORS через Vite proxy (`/api` → `localhost:8081`)
