@@ -6,61 +6,47 @@ interface BreadcrumbItem {
   path: string;
 }
 
+const LABELS: Record<string, string> = {
+  instruments: 'Инструменты',
+  instrument: 'Детали инструмента',
+  calculation: 'Заявка',
+  login: 'Вход',
+  register: 'Регистрация',
+};
+
 const Breadcrumbs = () => {
   const location = useLocation();
 
-  // Генерация хлебных крошек на основе текущего пути
-  const generateBreadcrumbs = (): BreadcrumbItem[] => {
-    const pathParts = location.pathname.split('/').filter(Boolean);
-    const breadcrumbs: BreadcrumbItem[] = [{ label: 'Главная', path: '/' }];
+  if (location.pathname === '/') return null;
 
-    pathParts.forEach((part, index) => {
-      const path = '/' + pathParts.slice(0, index + 1).join('/');
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  const breadcrumbs: BreadcrumbItem[] = [{ label: 'Главная', path: '/' }];
 
-      // Определяем название для каждого сегмента
-      let label = part;
+  for (let i = 0; i < pathParts.length; i++) {
+    const part = pathParts[i];
+    if (!isNaN(Number(part))) continue;
 
-      if (part === 'instruments') {
-        label = 'Инструменты';
-      } else if (part === 'instrument') {
-        label = 'Детали инструмента';
-      } else if (part === 'calculation') {
-        label = 'Расчёт массы';
-      } else if (!isNaN(Number(part))) {
-        // Пропускаем числовые ID в отображении, но сохраняем путь
-        return;
-      }
-
-      breadcrumbs.push({ label, path });
-    });
-
-    return breadcrumbs;
-  };
-
-  const breadcrumbs = generateBreadcrumbs();
-
-  // Не показываем breadcrumbs на главной странице
-  if (location.pathname === '/') {
-    return null;
+    const path = '/' + pathParts.slice(0, i + 1).join('/');
+    const label = LABELS[part] || part;
+    breadcrumbs.push({ label, path });
   }
+
+  const cleanLabel = (s: string) => String(s).replace(/^\/+/, '').trim() || s;
 
   return (
     <nav className="breadcrumbs-container" aria-label="breadcrumb">
       <ol className="breadcrumbs-list">
         {breadcrumbs.map((crumb, index) => {
           const isLast = index === breadcrumbs.length - 1;
-
+          const label = cleanLabel(crumb.label);
           return (
-            <li
-              key={crumb.path}
-              className={`breadcrumb-item ${isLast ? 'active' : ''}`}
-            >
+            <li key={crumb.path} className={`breadcrumb-item ${isLast ? 'active' : ''}`}>
               {isLast ? (
-                <span>{crumb.label}</span>
+                <span>{label}</span>
               ) : (
                 <>
-                  <Link to={crumb.path}>{crumb.label}</Link>
-                  <span className="breadcrumb-separator">›</span>
+                  <Link to={crumb.path}>{label}</Link>
+                  <span className="breadcrumb-separator" aria-hidden="true">&rsaquo;</span>
                 </>
               )}
             </li>

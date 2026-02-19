@@ -12,6 +12,13 @@
   align-items: center;
 }
 
+/* Отключаем слеш из Bootstrap (.breadcrumb-item::before { content: '/' }) */
+.breadcrumbs-container .breadcrumb-item::before,
+.breadcrumbs-container .breadcrumb-item::after {
+  content: none !important;
+  display: none !important;
+}
+
 .breadcrumb-item {
   display: flex;
   align-items: center;

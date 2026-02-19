@@ -1,11 +1,24 @@
 import { useState } from 'react';
 import { Navbar, Nav, Container, Offcanvas } from 'react-bootstrap';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { isAuthenticated, logout } from '../services/api';
 import './NavigationBar.css';
 
 const NavigationBar = () => {
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const authenticated = isAuthenticated();
+
+  const handleLogout = async () => {
+    handleClose();
+    try {
+      await logout();
+    } finally {
+      navigate('/', { replace: true });
+      window.location.reload();
+    }
+  };
 
   const handleClose = () => setShowOffcanvas(false);
   const handleShow = () => setShowOffcanvas(true);
@@ -77,6 +90,34 @@ const NavigationBar = () => {
                 <span className="nav-icon">&#128202;</span>
                 Расчёт
               </Nav.Link>
+
+              {authenticated ? (
+                <Nav.Link as="button" className="nav-link-cosmic nav-link-logout" onClick={handleLogout}>
+                  <span className="nav-icon">&#128682;</span>
+                  Выход
+                </Nav.Link>
+              ) : (
+                <>
+                  <Nav.Link
+                    as={Link}
+                    to="/login"
+                    className={`nav-link-cosmic ${isActive('/login') ? 'active' : ''}`}
+                    onClick={handleClose}
+                  >
+                    <span className="nav-icon">&#128274;</span>
+                    Вход
+                  </Nav.Link>
+                  <Nav.Link
+                    as={Link}
+                    to="/register"
+                    className={`nav-link-cosmic ${isActive('/register') ? 'active' : ''}`}
+                    onClick={handleClose}
+                  >
+                    <span className="nav-icon">&#128100;</span>
+                    Регистрация
+                  </Nav.Link>
+                </>
+              )}
             </Nav>
 
             <div className="offcanvas-footer-cosmic">

@@ -120,10 +120,30 @@
   margin-top: 30px;
 }
 
+/* Статус-бар заявки */
+.order-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.status-date {
+  color: #888;
+  font-size: 0.9em;
+}
+
 /* Статус заявки */
 .order-status {
   text-align: center;
   margin-top: 25px;
+}
+
+.selected-mass {
+  color: #4facfe;
+  font-size: 0.85em;
+  margin-top: 4px;
 }
 
 .status-badge-large {
@@ -154,11 +174,6 @@
 .status-badge-large.отклонён {
   background: rgba(220, 53, 69, 0.2);
   color: #dc3545;
-}
-
-/* Кнопка назад */
-.back-section {
-  margin-top: 30px;
 }
 
 /* Уведомления */

@@ -77,6 +77,27 @@ export async function fetchInstrumentById(id: number): Promise<Instrument> {
   return apiRequest<Instrument>(`/services/${id}`);
 }
 
+// Загрузка изображения инструмента (только для модератора). FormData с полем 'image' (файл)
+export async function uploadServiceImage(serviceId: number, file: File): Promise<{ image_url: string }> {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const token = getAuthToken();
+  const response = await fetch(API_BASE_URL + `/services/${serviceId}/image`, {
+    method: 'POST',
+    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    credentials: 'include',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const err = new Error(`API Error: ${response.status}`) as Error & { status: number };
+    err.status = response.status;
+    throw err;
+  }
+  return response.json();
+}
+
 // ==================== КОРЗИНА И ЗАЯВКИ ====================
 
 // Получение иконки корзины
@@ -133,18 +154,12 @@ export async function deleteOrder(orderId: number): Promise<void> {
 
 // ==================== АВТОРИЗАЦИЯ ====================
 
-// Регистрация
-export async function register(data: RegisterData): Promise<{ user: User; token: string }> {
-  const response = await apiRequest<{ user: User; token: string }>('/auth/register', {
+// Регистрация (бэкенд возвращает только user, без token — после регистрации нужно войти)
+export async function register(data: RegisterData): Promise<User> {
+  return apiRequest<User>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(data),
   });
-
-  if (response.token) {
-    setAuthToken(response.token);
-  }
-
-  return response;
 }
 
 // Вход

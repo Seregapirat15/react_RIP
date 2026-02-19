@@ -127,6 +127,20 @@
   border-left: 3px solid #4facfe;
 }
 
+.nav-link-logout {
+  background: none !important;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-size: 1.05em;
+}
+
+.nav-link-logout:hover {
+  color: #ff6b6b !important;
+  background: rgba(255, 107, 107, 0.1) !important;
+}
+
 .nav-icon {
   font-size: 1.2em;
   width: 28px;
