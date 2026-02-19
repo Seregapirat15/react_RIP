@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button, Alert } from 'react-bootstrap';
 import { fetchInstrumentById } from '../services/api';
 import { Instrument } from '../types';
+import { MOCK_INSTRUMENTS } from '../data/mockData';
 import './InstrumentDetailPage.css';
 
 const DEFAULT_IMAGE = '/placeholder-service.svg';
+const DEFAULT_VIDEO = 'https://www.w3schools.com/html/mov_bbb.mp4';
 
 const InstrumentDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [instrument, setInstrument] = useState<Instrument | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -26,9 +29,13 @@ const InstrumentDetailPage = () => {
     try {
       const data = await fetchInstrumentById(instrumentId);
       setInstrument(data);
-    } catch (err) {
-      console.error('Ошибка загрузки инструмента:', err);
-      setError('Инструмент не найден');
+    } catch {
+      const mockInstrument = MOCK_INSTRUMENTS.find(i => i.id === instrumentId);
+      if (mockInstrument) {
+        setInstrument(mockInstrument);
+      } else {
+        setError('Инструмент не найден');
+      }
     } finally {
       setLoading(false);
     }
@@ -49,142 +56,112 @@ const InstrumentDetailPage = () => {
 
   if (error || !instrument) {
     return (
-      <div className="instrument-detail-page">
+      <div className="vibes-page">
         <Alert className="alert-danger-cosmic">
           {error || 'Инструмент не найден'}
         </Alert>
-        <Link to="/">
-          <Button className="btn-cosmic">← Вернуться к списку</Button>
+        <Link to="/instruments">
+          <Button className="btn-cosmic">&#8592; Вернуться к списку</Button>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="instrument-detail-page">
-      <div className="detail-container section-cosmic">
-        {/* Изображение */}
-        <div className="detail-image">
-          <img
-            src={instrument.image_url || DEFAULT_IMAGE}
-            onError={handleImageError}
-            alt={instrument.name}
-          />
-        </div>
+    <div className="vibes-page">
+      <div className="vibes-container">
+        {/* Видео секция — портрет в стиле Vibes/TikTok */}
+        <div className="vibes-video-section">
+          <video
+            ref={videoRef}
+            className="vibes-video"
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster={instrument.image_url || DEFAULT_IMAGE}
+          >
+            <source src={DEFAULT_VIDEO} type="video/mp4" />
+            Ваш браузер не поддерживает видео
+          </video>
 
-        {/* Основная информация */}
-        <div className="detail-info">
-          <h1 className="detail-title">{instrument.full_name || instrument.name}</h1>
+          <div className="vibes-overlay">
+            <div className="vibes-header">
+              <span className={`vibes-badge ${instrument.type}`}>
+                {instrument.type === 'ground' ? 'Наземный' : 'Космический'}
+              </span>
+              <span className="vibes-status">{instrument.status}</span>
+            </div>
 
-          <div className="detail-row">
-            <span className="detail-label">Тип:</span>
-            <span className="detail-value">
-              {instrument.type === 'ground' ? '🌍 Наземный инструмент' : '🚀 Космический инструмент'}
-            </span>
-          </div>
+            <div className="vibes-content">
+              <h1 className="vibes-title">{instrument.name}</h1>
+              <p className="vibes-subtitle">{instrument.full_name}</p>
 
-          <div className="detail-row">
-            <span className="detail-label">Статус:</span>
-            <span className={`detail-value status-${instrument.status?.toLowerCase() === 'активен' ? 'active' : 'inactive'}`}>
-              {instrument.status}
-            </span>
-          </div>
-
-          <div className="detail-row">
-            <span className="detail-label">Дата запуска:</span>
-            <span className="detail-value">{instrument.launch_date}</span>
-          </div>
-
-          <div className="detail-description">
-            <h3>Описание</h3>
-            <p>{instrument.description}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Характеристики */}
-      <div className="characteristics-section section-cosmic">
-        <h2 className="title-cosmic">Характеристики</h2>
-
-        <div className="characteristics-grid">
-          <div className="char-item">
-            <div className="char-label">Точность измерений</div>
-            <div className="char-value">{instrument.accuracy} {instrument.accuracy_unit}</div>
-          </div>
-
-          <div className="char-item">
-            <div className="char-label">Точность скорости</div>
-            <div className="char-value">{instrument.velocity_precision} м/с</div>
-          </div>
-
-          <div className="char-item">
-            <div className="char-label">Диапазон длин волн</div>
-            <div className="char-value">{instrument.wavelength_range_min} - {instrument.wavelength_range_max} нм</div>
-          </div>
-
-          <div className="char-item">
-            <div className="char-label">Разрешающая способность</div>
-            <div className="char-value">{instrument.resolution_power?.toLocaleString()}</div>
-          </div>
-
-          <div className="char-item">
-            <div className="char-label">Спектральное разрешение</div>
-            <div className="char-value">{instrument.spectral_resolution}</div>
-          </div>
-
-          <div className="char-item">
-            <div className="char-label">Диапазон измерений</div>
-            <div className="char-value">{instrument.measurement_range}</div>
-          </div>
-
-          <div className="char-item">
-            <div className="char-label">Разрешение</div>
-            <div className="char-value">{instrument.resolution}</div>
-          </div>
-
-          <div className="char-item">
-            <div className="char-label">Калибровка</div>
-            <div className="char-value">{instrument.calibration}</div>
-          </div>
-
-          <div className="char-item">
-            <div className="char-label">Стабильность</div>
-            <div className="char-value">{instrument.stability}</div>
-          </div>
-
-          <div className="char-item">
-            <div className="char-label">Тип прибора</div>
-            <div className="char-value">{instrument.instrument_type}</div>
+              <div className="vibes-stats">
+                <div className="vibes-stat">
+                  <span className="stat-value">{instrument.accuracy}</span>
+                  <span className="stat-label">{instrument.accuracy_unit}</span>
+                </div>
+                <div className="vibes-stat">
+                  <span className="stat-value">{instrument.velocity_precision}</span>
+                  <span className="stat-label">м/с точность</span>
+                </div>
+                <div className="vibes-stat">
+                  <span className="stat-value">{instrument.resolution_power?.toLocaleString()}</span>
+                  <span className="stat-label">разрешение</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Дополнительная информация */}
-      <div className="additional-section section-cosmic">
-        <h2 className="title-cosmic">Дополнительная информация</h2>
+        {/* Описание */}
+        <div className="vibes-description">
+          <p>{instrument.description}</p>
 
-        <div className="additional-grid">
-          <div className="add-item">
-            <div className="add-label">📍 Местоположение</div>
-            <div className="add-value">{instrument.location}</div>
-          </div>
-
-          <div className="add-item">
-            <div className="add-label">🚀 Дата запуска</div>
-            <div className="add-value">{instrument.launch_date}</div>
+          <div className="vibes-meta">
+            <div className="meta-item">
+              <span className="meta-icon">&#128205;</span>
+              <span>{instrument.location}</span>
+            </div>
+            <div className="meta-item">
+              <span className="meta-icon">&#128197;</span>
+              <span>Запуск: {instrument.launch_date}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Кнопка назад */}
-      <div className="back-section">
-        <Link to="/">
-          <Button className="btn-cosmic">← Вернуться к списку инструментов</Button>
-        </Link>
+        {/* Характеристики */}
+        <div className="vibes-specs">
+          <h3>Характеристики</h3>
+          <div className="specs-grid">
+            <div className="spec-item">
+              <span className="spec-label">Диапазон волн</span>
+              <span className="spec-value">{instrument.wavelength_range_min} — {instrument.wavelength_range_max} нм</span>
+            </div>
+            <div className="spec-item">
+              <span className="spec-label">Спектральное разрешение</span>
+              <span className="spec-value">{instrument.spectral_resolution?.toLocaleString()}</span>
+            </div>
+            <div className="spec-item">
+              <span className="spec-label">Калибровка</span>
+              <span className="spec-value">{instrument.calibration}</span>
+            </div>
+            <div className="spec-item">
+              <span className="spec-label">Стабильность</span>
+              <span className="spec-value">{instrument.stability}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="vibes-actions">
+          <Link to="/instruments">
+            <Button className="btn-vibes-back">&#8592; Назад к каталогу</Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
 };
 
 export default InstrumentDetailPage;
-

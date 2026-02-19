@@ -1,110 +1,89 @@
-import { useState, useEffect } from 'react';
-import { Navbar, Nav, Container, Button } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
-import { fetchCartIcon, isAuthenticated } from '../services/api';
-import { CartIcon } from '../types';
+import { useState } from 'react';
+import { Navbar, Nav, Container, Offcanvas } from 'react-bootstrap';
+import { Link, useLocation } from 'react-router-dom';
+import './NavigationBar.css';
 
 const NavigationBar = () => {
-  const navigate = useNavigate();
-  const [cart, setCart] = useState<CartIcon | null>(null);
+  const [showOffcanvas, setShowOffcanvas] = useState(false);
+  const location = useLocation();
 
-  useEffect(() => {
-    loadCart();
-  }, []);
+  const handleClose = () => setShowOffcanvas(false);
+  const handleShow = () => setShowOffcanvas(true);
 
-  const loadCart = async () => {
-    if (!isAuthenticated()) return;
-
-    try {
-      const cartData = await fetchCartIcon();
-      setCart(cartData);
-    } catch (err) {
-      console.error('Ошибка загрузки корзины:', err);
-    }
-  };
-
-  const goToCalculation = () => {
-    if (cart && cart.order_id > 0) {
-      navigate(`/calculation/${cart.order_id}`);
-    } else {
-      navigate('/calculation');
-    }
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Navbar
-      expand="lg"
-      className="navbar-cosmic"
-      style={{
-        background: 'linear-gradient(135deg, rgba(10, 10, 26, 0.95) 0%, rgba(26, 26, 58, 0.95) 100%)',
-        borderBottom: '1px solid rgba(79, 172, 254, 0.2)',
-        padding: '15px 0',
-      }}
-    >
-      <Container>
-        <Navbar.Brand
-          as={Link}
-          to="/"
-          style={{
-            color: '#4facfe',
-            fontWeight: 700,
-            fontSize: '1.4em',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-          }}
-        >
-          🔭 ExoMass Calculator
+    <Navbar className="navbar-cosmic" sticky="top">
+      <Container fluid className="px-4">
+        <Navbar.Brand as={Link} to="/" className="navbar-brand-cosmic">
+          <span className="brand-icon">&#128301;</span>
+          ExoMass Calculator
         </Navbar.Brand>
 
-        <Navbar.Toggle
-          aria-controls="basic-navbar-nav"
-          style={{ borderColor: 'rgba(79, 172, 254, 0.5)' }}
-        />
+        <button
+          className="navbar-toggler-cosmic"
+          onClick={handleShow}
+          aria-label="Toggle navigation"
+        >
+          <span className="toggler-bar"></span>
+          <span className="toggler-bar"></span>
+          <span className="toggler-bar"></span>
+        </button>
 
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            <Nav.Link
-              as={Link}
-              to="/instruments"
-              style={{ color: '#e0e0e0', fontWeight: 500 }}
-            >
-              🌌 Инструменты
-            </Nav.Link>
-          </Nav>
+        <Offcanvas
+          show={showOffcanvas}
+          onHide={handleClose}
+          placement="end"
+          className="offcanvas-cosmic"
+        >
+          <Offcanvas.Header className="offcanvas-header-cosmic">
+            <Offcanvas.Title className="offcanvas-title-cosmic">
+              <span className="brand-icon">&#128301;</span>
+              Навигация
+            </Offcanvas.Title>
+            <button className="offcanvas-close-cosmic" onClick={handleClose}>
+              &times;
+            </button>
+          </Offcanvas.Header>
 
-          <Nav>
-            <Button
-              variant="outline-info"
-              onClick={goToCalculation}
-              disabled={!cart || cart.services_count === 0}
-              style={{
-                borderColor: '#4facfe',
-                color: '#4facfe',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 20px',
-              }}
-            >
-              📊 Расчёт
-              <span
-                style={{
-                  background: 'rgba(79, 172, 254, 0.2)',
-                  borderRadius: '50%',
-                  width: '24px',
-                  height: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.85em',
-                }}
+          <Offcanvas.Body className="offcanvas-body-cosmic">
+            <Nav className="nav-cosmic">
+              <Nav.Link
+                as={Link}
+                to="/"
+                className={`nav-link-cosmic ${isActive('/') ? 'active' : ''}`}
+                onClick={handleClose}
               >
-                {cart?.services_count || 0}
-              </span>
-            </Button>
-          </Nav>
-        </Navbar.Collapse>
+                <span className="nav-icon">&#127968;</span>
+                Главная
+              </Nav.Link>
+
+              <Nav.Link
+                as={Link}
+                to="/instruments"
+                className={`nav-link-cosmic ${isActive('/instruments') ? 'active' : ''}`}
+                onClick={handleClose}
+              >
+                <span className="nav-icon">&#128301;</span>
+                Инструменты
+              </Nav.Link>
+
+              <Nav.Link
+                as={Link}
+                to="/calculation"
+                className={`nav-link-cosmic ${isActive('/calculation') || location.pathname.startsWith('/calculation/') ? 'active' : ''}`}
+                onClick={handleClose}
+              >
+                <span className="nav-icon">&#128202;</span>
+                Расчёт
+              </Nav.Link>
+            </Nav>
+
+            <div className="offcanvas-footer-cosmic">
+              <p className="footer-text">ExoMass Calculator v1.0</p>
+            </div>
+          </Offcanvas.Body>
+        </Offcanvas>
       </Container>
     </Navbar>
   );

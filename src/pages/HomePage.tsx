@@ -1,34 +1,38 @@
 import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import './HomePage.css';
 
 const HomePage = () => {
     return (
-        <Container className="mt-5">
-            <div className="p-5 mb-4 bg-light rounded-3 text-center hero-section">
-                <Container fluid>
-                    <h1 className="display-4 fw-bold">Система расчёта массы экзопланет</h1>
-                    <p className="lead fs-4">
-                        Профессиональный инструмент для астрофизиков и исследователей космоса.
-                    </p>
-                    <hr className="my-4" />
-                    <p>
-                        Мы предоставляем доступ к передовым астрономическим инструментам и алгоритмам
-                        расчёта радиальной скорости для точного определения массы экзопланет.
-                    </p>
-                    <div className="d-flex justify-content-center gap-3 mt-4">
-                        <Link to="/instruments">
-                            <Button variant="primary" size="lg">Перейти к услугам</Button>
-                        </Link>
-                    </div>
-                </Container>
+        <Container className="mt-4">
+            <div className="hero-section">
+                <h1 className="hero-title">
+                    Система расчёта массы экзопланет
+                </h1>
+                <p className="hero-subtitle">
+                    Профессиональный инструмент для астрофизиков и исследователей космоса.
+                </p>
+                <hr className="hero-divider" />
+                <p className="hero-description">
+                    Мы предоставляем доступ к передовым астрономическим инструментам и алгоритмам
+                    расчёта радиальной скорости для точного определения массы экзопланет.
+                </p>
+                <div className="d-flex justify-content-center gap-3 mt-4">
+                    <Link to="/instruments">
+                        <Button className="btn-cosmic btn-hero" size="lg">
+                            Перейти к каталогу
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
-            <Row className="mb-5">
+            <Row className="mb-5 mt-5">
                 <Col md={4} className="mb-3">
-                    <Card className="h-100 shadow-sm border-0">
+                    <Card className="feature-card h-100">
                         <Card.Body>
-                            <Card.Title className="fw-bold text-primary">🪐 Точность</Card.Title>
-                            <Card.Text>
+                            <div className="feature-icon">&#127756;</div>
+                            <Card.Title className="feature-title">Точность</Card.Title>
+                            <Card.Text className="feature-text">
                                 Использование данных с инструментов HARPS, ESPRESSO и James Webb позволяет
                                 достичь точности измерения скорости до 0.1 м/с.
                             </Card.Text>
@@ -36,10 +40,11 @@ const HomePage = () => {
                     </Card>
                 </Col>
                 <Col md={4} className="mb-3">
-                    <Card className="h-100 shadow-sm border-0">
+                    <Card className="feature-card h-100">
                         <Card.Body>
-                            <Card.Title className="fw-bold text-success">📊 Аналитика</Card.Title>
-                            <Card.Text>
+                            <div className="feature-icon">&#128202;</div>
+                            <Card.Title className="feature-title">Аналитика</Card.Title>
+                            <Card.Text className="feature-text">
                                 Автоматический расчёт массы по методу радиальных скоростей с учётом
                                 угла наклона орбиты и периода обращения.
                             </Card.Text>
@@ -47,10 +52,11 @@ const HomePage = () => {
                     </Card>
                 </Col>
                 <Col md={4} className="mb-3">
-                    <Card className="h-100 shadow-sm border-0">
+                    <Card className="feature-card h-100">
                         <Card.Body>
-                            <Card.Title className="fw-bold text-info">🚀 Доступность</Card.Title>
-                            <Card.Text>
+                            <div className="feature-icon">&#128640;</div>
+                            <Card.Title className="feature-title">Доступность</Card.Title>
+                            <Card.Text className="feature-text">
                                 Единая платформа для работы с наземными и космическими телескопами
                                 через удобный веб-интерфейс.
                             </Card.Text>
