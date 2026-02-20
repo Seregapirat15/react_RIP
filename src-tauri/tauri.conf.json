@@ -5,17 +5,28 @@
   "identifier": "com.rip.exoplanets",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "http://127.0.0.1:3000",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },
   "app": {
-    "withGlobalTauri": true
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Экзопланеты",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
   },
   "bundle": {
     "active": true,
     "icon": [
-      "../public/placeholder-service.svg"
+      "icons/icon.ico",
+      "icons/icon.png"
     ]
   }
 }

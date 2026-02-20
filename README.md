@@ -104,7 +104,7 @@ npm run tauri build # сборка .exe
 | 2 | **IP в консоли = IP в коде** | `ipconfig` → IPv4 (напр. 192.168.56.1). Открыть `target.ts` → показать `BACKEND_IP = '192.168.56.1'` — совпадает |
 | 3 | **Порт Tauri в Wireshark** | Wireshark → фильтр `tcp.port == 8081` → запустить Tauri, открыть каталог → найти пакет GET → **Src Port** = порт Tauri |
 | 4 | **Правка БД → изменение в Tauri** | Adminer/Postman: изменить название или описание услуги → в Tauri обновить/переоткрыть → показать новые данные |
-| 5 | **HTTPS локально** | mkcert + vite-plugin-mkcert, в `vite.config` добавить `https` в server → `npm run dev` → открыть https://localhost:3000 → замочек в браузере |
+| 5 | **HTTPS локально** | см. раздел «П.6: HTTPS в локально развёрнутом фронте» ниже |
 
 ### П.5: Tauri build и работа с бэкендом (подробно, без ZeroTier)
 
@@ -186,6 +186,33 @@ npm run tauri build
 - Проверьте, что бэкенд запущен и Swagger открывается по http://localhost:8081/swagger/.
 - Проверьте, что в `target.ts` указан тот же IP, что выдаёт `ipconfig` на этом ПК (если бэкенд на другом компьютере — укажите IP того компьютера).
 - На Windows: фаервол может блокировать входящие на 8081 — разрешите приложению Go/backend или порт 8081 для частной сети.
+
+### П.6: HTTPS в локально развёрнутом фронте
+
+**Цель:** показать замочек HTTPS в браузере при локальном запуске.
+
+**Способ 1 — vite-plugin-mkcert (проще)**
+
+1. Установить: `npm install -D vite-plugin-mkcert`
+2. В `vite.config.js`:
+   - импорт: `import mkcert from 'vite-plugin-mkcert'`
+   - в `plugins`: добавить `mkcert()`
+   - в `server`: добавить `https: true`
+3. Запуск: `npm run dev`
+4. Открыть **https://localhost:3000** — в адресной строке замочек и надпись «Безопасное подключение».
+
+**Способ 2 — mkcert вручную**
+
+1. Установить mkcert: https://github.com/FiloSottile/mkcert#installation  
+2. Выполнить: `mkcert -install` и `mkcert localhost 127.0.0.1`
+3. В `vite.config.js` в `server` добавить:
+   ```js
+   https: {
+     key: fs.readFileSync('localhost+1-key.pem'),
+     cert: fs.readFileSync('localhost+1.pem'),
+   },
+   ```
+4. Запуск: `npm run dev` → открыть https://localhost:3000
 
 ### Доступ с телефона без ZeroTier (обычная Wi‑Fi сеть)
 

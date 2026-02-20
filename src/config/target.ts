@@ -2,7 +2,8 @@
  * Lab 6: Конфиг для Tauri и GitHub Pages.
  * В Tauri build прокси не работает — нужно указывать IP бэкенда в локальной сети (не localhost).
  */
-const isTauri = !!(
+/** true, если приложение запущено в Tauri (desktop) */
+export const isTauri = !!(
   typeof window !== 'undefined' &&
   (window as Window & { __TAURI__?: unknown }).__TAURI__
 );

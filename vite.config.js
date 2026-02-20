@@ -1,15 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import mkcert from 'vite-plugin-mkcert'
 
-// base для GitHub Pages — должен совпадать с путём в URL (имя репозитория)
 const BASE = process.env.GITHUB_PAGES ? '/react_RIP/' : '/'
+const isTauri = !!process.env.TAURI_ENV_PLATFORM
 
-// https://vitejs.dev/config/
 export default defineConfig({
   base: BASE,
   plugins: [
     react(),
+    ...(!isTauri ? [mkcert()] : []),
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: { enabled: true },
@@ -29,7 +30,10 @@ export default defineConfig({
     }),
   ],
   server: {
+    host: '127.0.0.1',
     port: 3000,
+    https: !isTauri,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://localhost:8081',

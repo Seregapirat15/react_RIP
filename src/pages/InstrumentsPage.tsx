@@ -4,6 +4,7 @@ import { Form, Button, Alert, Row, Col, InputGroup } from 'react-bootstrap';
 import { fetchInstruments, fetchCartIcon, addToOrder, isAuthenticated } from '../services/api';
 import { Instrument, CartIcon } from '../types';
 import { MOCK_INSTRUMENTS } from '../data/mockData';
+import { isTauri } from '../config/target';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { store } from '../store';
 import {
@@ -30,6 +31,7 @@ const InstrumentsPage = () => {
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingMock, setUsingMock] = useState(false);
+  const [apiFailedInTauri, setApiFailedInTauri] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [cart, setCart] = useState<CartIcon | null>(null);
 
@@ -48,19 +50,27 @@ const InstrumentsPage = () => {
       });
       setInstruments(data);
       setUsingMock(false);
+      setApiFailedInTauri(false);
     } catch {
-      let mockData = [...MOCK_INSTRUMENTS];
-      if (search) {
-        mockData = mockData.filter(i =>
-          i.name.toLowerCase().includes(search.toLowerCase()) ||
-          i.full_name.toLowerCase().includes(search.toLowerCase())
-        );
+      if (isTauri) {
+        setInstruments([]);
+        setUsingMock(false);
+        setApiFailedInTauri(true);
+      } else {
+        setApiFailedInTauri(false);
+        let mockData = [...MOCK_INSTRUMENTS];
+        if (search) {
+          mockData = mockData.filter(i =>
+            i.name.toLowerCase().includes(search.toLowerCase()) ||
+            i.full_name.toLowerCase().includes(search.toLowerCase())
+          );
+        }
+        if (type) mockData = mockData.filter(i => i.type === type);
+        if (minA) mockData = mockData.filter(i => i.accuracy >= Number(minA));
+        if (maxA) mockData = mockData.filter(i => i.accuracy <= Number(maxA));
+        setInstruments(mockData);
+        setUsingMock(true);
       }
-      if (type) mockData = mockData.filter(i => i.type === type);
-      if (minA) mockData = mockData.filter(i => i.accuracy >= Number(minA));
-      if (maxA) mockData = mockData.filter(i => i.accuracy <= Number(maxA));
-      setInstruments(mockData);
-      setUsingMock(true);
     } finally {
       setLoading(false);
     }
@@ -148,9 +158,14 @@ const InstrumentsPage = () => {
         <div className={`message-toast ${message.type}`}>{message.text}</div>
       )}
 
-      {usingMock && (
+      {usingMock && !isTauri && (
         <Alert variant="warning" className="mock-alert">
           Бэкенд недоступен. Показаны демонстрационные данные (Mock).
+        </Alert>
+      )}
+      {isTauri && apiFailedInTauri && (
+        <Alert variant="warning" className="mock-alert">
+          Запустите бэкенд (backend_RIP на порту 8081). Tauri показывает только данные с API.
         </Alert>
       )}
 

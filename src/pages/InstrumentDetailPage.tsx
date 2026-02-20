@@ -4,6 +4,7 @@ import { Button, Alert } from 'react-bootstrap';
 import { fetchInstrumentById } from '../services/api';
 import { Instrument } from '../types';
 import { MOCK_INSTRUMENTS } from '../data/mockData';
+import { isTauri } from '../config/target';
 import './InstrumentDetailPage.css';
 
 const DEFAULT_IMAGE = '/placeholder-service.svg';
@@ -31,11 +32,15 @@ const InstrumentDetailPage = () => {
       const data = await fetchInstrumentById(instrumentId);
       setInstrument(data);
     } catch {
-      const mockInstrument = MOCK_INSTRUMENTS.find(i => i.id === instrumentId);
-      if (mockInstrument) {
-        setInstrument(mockInstrument);
+      if (isTauri) {
+        setError('Инструмент не найден или бэкенд недоступен. Запустите backend_RIP на порту 8081.');
       } else {
-        setError('Инструмент не найден');
+        const mockInstrument = MOCK_INSTRUMENTS.find(i => i.id === instrumentId);
+        if (mockInstrument) {
+          setInstrument(mockInstrument);
+        } else {
+          setError('Инструмент не найден');
+        }
       }
     } finally {
       setLoading(false);
