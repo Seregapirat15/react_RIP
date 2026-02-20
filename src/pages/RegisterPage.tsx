@@ -1,125 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { Form, Button, Alert } from 'react-bootstrap';
-import { register } from '../services/api';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { registerExoplanetUser, clearAuthError } from '../store/authSlice';
 import './AuthPages.css';
 
 const RegisterPage = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    login: '',
-    email: '',
-    password: '',
-    first_name: '',
-    last_name: '',
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { loading, error } = useAppSelector((s) => s.auth);
+
+  const [form, setForm] = useState({ login: '', email: '', password: '', first_name: '', last_name: '' });
+
+  useEffect(() => () => { dispatch(clearAuthError()); }, [dispatch]);
+
+  const handleChange = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await register(formData);
-      navigate('/login', { replace: true });
-      setError('');
-    } catch (err: unknown) {
-      const status = (err as { status?: number }).status;
-      setError(
-        status === 400
-          ? 'Проверьте поля (логин может быть занят)'
-          : 'Ошибка регистрации. Проверьте, что бэкенд запущен.'
-      );
-    } finally {
-      setLoading(false);
+    const result = await dispatch(registerExoplanetUser(form));
+    if (registerExoplanetUser.fulfilled.match(result)) {
+      navigate('/login');
     }
   };
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
+      <div className="auth-card card-cosmic">
         <h2 className="auth-title">Регистрация</h2>
-        <p className="auth-subtitle">Создайте аккаунт для работы с заявками</p>
-
-        {error && <Alert variant="danger" className="auth-alert">{error}</Alert>}
-
+        {error && <Alert variant="danger">{error}</Alert>}
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label className="auth-label">Логин</Form.Label>
-            <Form.Control
-              type="text"
-              className="input-cosmic"
-              placeholder="Логин"
-              value={formData.login}
-              onChange={(e) => setFormData({ ...formData, login: e.target.value })}
-              required
-              autoComplete="username"
-            />
+            <Form.Control className="auth-input" value={form.login} onChange={(e) => handleChange('login', e.target.value)} required />
           </Form.Group>
-
           <Form.Group className="mb-3">
             <Form.Label className="auth-label">Email</Form.Label>
-            <Form.Control
-              type="email"
-              className="input-cosmic"
-              placeholder="email@example.com"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-              autoComplete="email"
-            />
+            <Form.Control className="auth-input" type="email" value={form.email} onChange={(e) => handleChange('email', e.target.value)} required />
           </Form.Group>
-
           <Form.Group className="mb-3">
             <Form.Label className="auth-label">Пароль</Form.Label>
-            <Form.Control
-              type="password"
-              className="input-cosmic"
-              placeholder="Пароль"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              minLength={6}
-              autoComplete="new-password"
-            />
+            <Form.Control className="auth-input" type="password" value={form.password} onChange={(e) => handleChange('password', e.target.value)} required />
           </Form.Group>
-
           <Form.Group className="mb-3">
             <Form.Label className="auth-label">Имя</Form.Label>
-            <Form.Control
-              type="text"
-              className="input-cosmic"
-              placeholder="Имя"
-              value={formData.first_name}
-              onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-              required
-              autoComplete="given-name"
-            />
+            <Form.Control className="auth-input" value={form.first_name} onChange={(e) => handleChange('first_name', e.target.value)} />
           </Form.Group>
-
-          <Form.Group className="mb-4">
+          <Form.Group className="mb-3">
             <Form.Label className="auth-label">Фамилия</Form.Label>
-            <Form.Control
-              type="text"
-              className="input-cosmic"
-              placeholder="Фамилия"
-              value={formData.last_name}
-              onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-              required
-              autoComplete="family-name"
-            />
+            <Form.Control className="auth-input" value={form.last_name} onChange={(e) => handleChange('last_name', e.target.value)} />
           </Form.Group>
-
-          <Button type="submit" className="btn-cosmic w-100 auth-btn" disabled={loading}>
-            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+          <Button className="btn-cosmic w-100" type="submit" disabled={loading}>
+            {loading ? <Spinner size="sm" animation="border" /> : 'Зарегистрироваться'}
           </Button>
         </Form>
-
-        <p className="auth-footer">
+        <div className="auth-footer">
           Уже есть аккаунт? <Link to="/login">Войти</Link>
-        </p>
+        </div>
       </div>
     </div>
   );

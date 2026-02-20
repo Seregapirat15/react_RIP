@@ -1,8 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Row, Col, Form, Button, Alert } from 'react-bootstrap';
-import { fetchOrderById, fetchCartIcon, removeFromOrder, updateOrderService, formOrder, deleteOrder, isAuthenticated } from '../services/api';
-import { Order } from '../types';
+import { Button, Alert, Spinner, Form, Table } from 'react-bootstrap';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import {
+  fetchExoplanetCalculationById,
+  updateExoplanetCalculation,
+  formExoplanetCalculation,
+  deleteExoplanetCalculation,
+  removeInstrumentFromCalculation,
+  updateCalculationInstrumentParams,
+  clearOrderDetailMessages,
+} from '../store/orderDetailSlice';
+import { fetchExoplanetCart } from '../store/cartSlice';
 import './CalculationPage.css';
 
 const DEFAULT_IMAGE = '/placeholder-service.svg';
@@ -10,340 +19,209 @@ const DEFAULT_IMAGE = '/placeholder-service.svg';
 const CalculationPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const { order, loading, actionLoading, error, successMessage } = useAppSelector((s) => s.orderDetail);
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
+  const cart = useAppSelector((s) => s.cart.cart);
 
-  const [formData, setFormData] = useState({
-    exoplanet_name: '',
-    star_mass: '1.0',
-    orbital_period: '365.0',
-    velocity_amplitude: '10.0',
-    inclination: '90.0',
-    eccentricity: '0.0',
-  });
+  const [notes, setNotes] = useState('');
+  const [editingService, setEditingService] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ exoplanet_name: '', star_mass: 1, orbital_period: 365, velocity_amplitude: 10, inclination: 90, eccentricity: 0 });
+
+  const orderId = id ? parseInt(id) : cart?.order_id;
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      setError('auth');
-      setLoading(false);
-      return;
+    if (!isAuthenticated) { navigate('/login', { replace: true }); return; }
+    if (orderId && orderId > 0) dispatch(fetchExoplanetCalculationById(orderId));
+  }, [orderId, isAuthenticated, dispatch, navigate]);
+
+  useEffect(() => {
+    if (order) setNotes(order.notes || '');
+  }, [order]);
+
+  useEffect(() => {
+    if (successMessage) {
+      const t = setTimeout(() => dispatch(clearOrderDetailMessages()), 3000);
+      return () => clearTimeout(t);
     }
-    loadOrder();
-  }, [id]);
+  }, [successMessage, dispatch]);
 
-  const loadOrder = async () => {
-    setLoading(true);
-    setError('');
+  const isDraft = order?.status === 'черновик' || order?.status === 'draft';
 
-    try {
-      let orderId = id ? parseInt(id) : null;
-
-      if (!orderId) {
-        try {
-          const cart = await fetchCartIcon();
-          orderId = cart.order_id;
-        } catch {
-          setError('no_order');
-          setLoading(false);
-          return;
-        }
-      }
-
-      if (orderId && orderId > 0) {
-        const data = await fetchOrderById(orderId);
-        setOrder(data);
-        if (data.services?.length && data.status === 'черновик') {
-          const first = data.services[0];
-          setFormData({
-            exoplanet_name: first.exoplanet_name || '',
-            star_mass: String(first.star_mass ?? 1),
-            orbital_period: String(first.orbital_period ?? 365),
-            velocity_amplitude: String(first.velocity_amplitude ?? 10),
-            inclination: String(first.inclination ?? 90),
-            eccentricity: String(first.eccentricity ?? 0),
-          });
-        }
-      } else {
-        setError('no_order');
-      }
-    } catch {
-      setError('load_error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemoveService = async (serviceId: number) => {
+  const handleUpdateOrder = () => {
     if (!order) return;
-    try {
-      await removeFromOrder(order.id, serviceId);
-      showMsg('Инструмент удалён из заявки', 'success');
-      loadOrder();
-    } catch {
-      showMsg('Ошибка при удалении инструмента', 'error');
-    }
+    dispatch(updateExoplanetCalculation({ orderId: order.id, fields: { notes } }));
   };
 
-  const handleFormOrder = async () => {
+  const handleFormOrder = () => {
     if (!order) return;
-    try {
-      const params = {
-        exoplanet_name: formData.exoplanet_name.trim() || 'Не указана',
-        star_mass: parseFloat(formData.star_mass) || 1,
-        orbital_period: parseFloat(formData.orbital_period) || 365,
-        velocity_amplitude: parseFloat(formData.velocity_amplitude) || 10,
-        inclination: parseFloat(formData.inclination) || 90,
-      };
-      for (const os of order.services || []) {
-        await updateOrderService(order.id, os.service_id, params);
+    dispatch(formExoplanetCalculation(order.id)).then((res) => {
+      if (formExoplanetCalculation.fulfilled.match(res)) dispatch(fetchExoplanetCart());
+    });
+  };
+
+  const handleDeleteOrder = () => {
+    if (!order) return;
+    dispatch(deleteExoplanetCalculation(order.id)).then((res) => {
+      if (deleteExoplanetCalculation.fulfilled.match(res)) {
+        dispatch(fetchExoplanetCart());
+        navigate('/orders');
       }
-      await formOrder(order.id);
-      showMsg('Заявка сформирована!', 'success');
-      loadOrder();
-    } catch {
-      showMsg('Ошибка при формировании заявки', 'error');
-    }
+    });
   };
 
-  const handleDeleteOrder = async () => {
+  const handleRemoveService = (serviceId: number) => {
     if (!order) return;
-    if (!confirm('Вы уверены, что хотите удалить эту заявку?')) return;
-    try {
-      await deleteOrder(order.id);
-      showMsg('Заявка удалена', 'success');
-      setTimeout(() => navigate('/instruments'), 1500);
-    } catch {
-      showMsg('Ошибка при удалении заявки', 'error');
-    }
+    dispatch(removeInstrumentFromCalculation({ orderId: order.id, serviceId })).then(() => dispatch(fetchExoplanetCart()));
   };
 
-  const showMsg = (text: string, type: 'success' | 'error') => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage(null), 3000);
+  const startEdit = (s: typeof order extends null ? never : NonNullable<typeof order>['services'] extends (infer U)[] | undefined ? U : never) => {
+    setEditingService(s.service_id);
+    setEditForm({
+      exoplanet_name: s.exoplanet_name || '',
+      star_mass: s.star_mass || 1,
+      orbital_period: s.orbital_period || 365,
+      velocity_amplitude: s.velocity_amplitude || 10,
+      inclination: s.inclination || 90,
+      eccentricity: s.eccentricity || 0,
+    });
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = DEFAULT_IMAGE;
+  const handleSaveServiceParams = () => {
+    if (!order || editingService === null) return;
+    dispatch(updateCalculationInstrumentParams({ orderId: order.id, serviceId: editingService, params: editForm }))
+      .then(() => { setEditingService(null); dispatch(fetchExoplanetCalculationById(order.id)); });
   };
 
-  const calculateMass = () => {
-    const starMass = parseFloat(formData.star_mass) || 1.0;
-    const orbitalPeriod = parseFloat(formData.orbital_period) || 365.0;
-    const velocityAmplitude = parseFloat(formData.velocity_amplitude) || 10.0;
-    const inclination = parseFloat(formData.inclination) || 90.0;
+  if (loading) return (
+    <div className="text-center py-5">
+      <Spinner animation="border" variant="primary" />
+      <p className="mt-3" style={{ color: '#aaa' }}>Загрузка заявки...</p>
+    </div>
+  );
 
-    const G = 6.674e-11;
-    const M_sun = 1.989e30;
-    const M_jupiter = 1.898e27;
+  if (!orderId || orderId <= 0) return (
+    <div className="calc-page">
+      <Alert variant="info">У вас нет активной заявки-черновика. <Link to="/instruments">Добавьте инструменты</Link> для создания заявки.</Alert>
+    </div>
+  );
 
-    const P_seconds = orbitalPeriod * 24 * 3600;
-    const K = velocityAmplitude;
-    const M_star = starMass * M_sun;
-    const i_rad = inclination * Math.PI / 180;
+  if (error) return (
+    <div className="calc-page">
+      <Alert variant="danger">{error}</Alert>
+      <Link to="/instruments"><Button className="btn-cosmic">К инструментам</Button></Link>
+    </div>
+  );
 
-    const term1 = K * Math.pow(P_seconds / (2 * Math.PI), 1 / 3);
-    const term2 = Math.pow(M_star, 2 / 3);
-    const M_p_sin_i = term1 * term2 / Math.pow(G, 1 / 3);
-    const M_p = M_p_sin_i / Math.sin(i_rad);
+  if (!order) return null;
 
-    return M_p / M_jupiter;
+  const statusLabel: Record<string, string> = {
+    'черновик': 'Черновик', 'draft': 'Черновик', 'сформирован': 'Сформирована', 'formed': 'Сформирована',
+    'завершён': 'Завершена', 'completed': 'Завершена', 'отклонён': 'Отклонена', 'rejected': 'Отклонена',
+    'удалён': 'Удалена', 'deleted': 'Удалена',
   };
 
-  // --- Loading ---
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-cosmic"></div>
-        <p className="mt-3" style={{ color: '#aaa' }}>Загрузка заявки...</p>
-      </div>
-    );
-  }
-
-  // --- Not authenticated ---
-  if (error === 'auth') {
-    return (
-      <div className="calculation-page">
-        <Alert className="alert-cosmic">
-          Для работы с заявками необходимо авторизоваться.
-        </Alert>
-        <div className="d-flex gap-3">
-          <Link to="/login"><Button className="btn-cosmic">Войти</Button></Link>
-          <Link to="/register"><Button variant="outline-info">Зарегистрироваться</Button></Link>
-        </div>
-      </div>
-    );
-  }
-
-  // --- No draft order ---
-  if (error === 'no_order') {
-    return (
-      <div className="calculation-page">
-        <Alert className="alert-cosmic">
-          У вас пока нет активной заявки. Перейдите в каталог инструментов и добавьте инструмент — заявка создастся автоматически.
-        </Alert>
-        <Link to="/instruments">
-          <Button className="btn-cosmic">Перейти к каталогу</Button>
-        </Link>
-      </div>
-    );
-  }
-
-  // --- Backend error ---
-  if (error === 'load_error') {
-    return (
-      <div className="calculation-page">
-        <Alert className="alert-danger-cosmic">
-          Ошибка при загрузке заявки. Убедитесь, что бэкенд запущен.
-        </Alert>
-        <div className="d-flex gap-3">
-          <Button className="btn-cosmic" onClick={() => loadOrder()}>Повторить</Button>
-          <Link to="/instruments"><Button variant="outline-info">К инструментам</Button></Link>
-        </div>
-      </div>
-    );
-  }
-
-  // --- Order loaded ---
   return (
-    <div className="calculation-page">
-      {message && (
-        <div className={`message-toast ${message.type}`}>{message.text}</div>
-      )}
+    <div className="calc-page">
+      {successMessage && <Alert variant="success">{successMessage}</Alert>}
+      {actionLoading && <div className="text-center mb-3"><Spinner animation="border" size="sm" /> Выполняется...</div>}
 
-      <h1 className="page-title">Заявка #{order?.id}</h1>
-
-      {/* Статус */}
-      {order && (
-        <div className="order-status-bar">
-          <span className={`status-badge-large ${order.status}`}>{order.status}</span>
-          {order.formation_date && (
-            <span className="status-date">Сформирована: {new Date(order.formation_date).toLocaleString('ru-RU')}</span>
-          )}
-          {order.completion_date && (
-            <span className="status-date">Завершена: {new Date(order.completion_date).toLocaleString('ru-RU')}</span>
-          )}
-        </div>
-      )}
-
-      {/* Результат расчёта */}
-      {order?.total_mass != null && order.total_mass > 0 && (
-        <div className="result-section section-cosmic">
-          <h2 className="title-cosmic">Результат расчёта</h2>
-          <div className="result-value">
-            {order.total_mass.toFixed(6)} M<sub>J</sub>
-          </div>
-          <p className="result-note">Масса в единицах массы Юпитера</p>
-        </div>
-      )}
-
-      {/* Форма расчёта (только для черновика) */}
-      {order?.status === 'черновик' && (
-        <div className="form-section section-cosmic">
-          <h2 className="title-cosmic">Параметры для расчёта</h2>
-          <Form className="calculation-form">
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="label-cosmic">Название экзопланеты</Form.Label>
-                  <Form.Control type="text" className="input-cosmic" placeholder="Например: Proxima Centauri b"
-                    value={formData.exoplanet_name} onChange={(e) => setFormData({ ...formData, exoplanet_name: e.target.value })} />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="label-cosmic">Масса звезды (M&#9788;)</Form.Label>
-                  <Form.Control type="number" step="0.001" className="input-cosmic" placeholder="1.0"
-                    value={formData.star_mass} onChange={(e) => setFormData({ ...formData, star_mass: e.target.value })} />
-                </Form.Group>
-              </Col>
-            </Row>
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="label-cosmic">Орбитальный период (дни)</Form.Label>
-                  <Form.Control type="number" step="0.01" className="input-cosmic" placeholder="365.0"
-                    value={formData.orbital_period} onChange={(e) => setFormData({ ...formData, orbital_period: e.target.value })} />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="label-cosmic">Амплитуда скорости (м/с)</Form.Label>
-                  <Form.Control type="number" step="0.1" className="input-cosmic" placeholder="10.0"
-                    value={formData.velocity_amplitude} onChange={(e) => setFormData({ ...formData, velocity_amplitude: e.target.value })} />
-                </Form.Group>
-              </Col>
-            </Row>
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="label-cosmic">Наклон орбиты (&#176;)</Form.Label>
-                  <Form.Control type="number" step="0.1" className="input-cosmic" placeholder="90.0"
-                    value={formData.inclination} onChange={(e) => setFormData({ ...formData, inclination: e.target.value })} />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="label-cosmic">Эксцентриситет</Form.Label>
-                  <Form.Control type="number" step="0.001" className="input-cosmic" placeholder="0.0"
-                    value={formData.eccentricity} onChange={(e) => setFormData({ ...formData, eccentricity: e.target.value })} />
-                </Form.Group>
-              </Col>
-            </Row>
-            <div className="form-actions">
-              <Button className="btn-cosmic calculate-btn" onClick={() => {
-                const mass = calculateMass();
-                alert(`Расчётная масса: ${mass.toFixed(6)} M_J`);
-              }}>
-                Рассчитать массу
-              </Button>
-            </div>
-          </Form>
-        </div>
-      )}
-
-      {/* Инструменты в заявке */}
-      <div className="instruments-section section-cosmic">
-        <h2 className="title-cosmic">Инструменты в заявке</h2>
-        {order?.services && order.services.length > 0 ? (
-          <div className="selected-instruments">
-            {order.services.map((os) => (
-              <div key={os.service_id} className="selected-instrument-card">
-                <div className="selected-image">
-                  <img src={os.service?.image_url || DEFAULT_IMAGE} onError={handleImageError} alt={os.service?.name || 'Инструмент'} />
-                </div>
-                <div className="selected-info">
-                  <div className="selected-name">{os.service?.name || `Инструмент #${os.service_id}`}</div>
-                  {os.exoplanet_name && <div className="selected-exoplanet">Экзопланета: {os.exoplanet_name}</div>}
-                  {os.calculated_mass != null && <div className="selected-mass">Масса: {os.calculated_mass.toFixed(6)} M<sub>J</sub></div>}
-                </div>
-                {order?.status === 'черновик' && (
-                  <Button className="btn-danger-cosmic remove-btn" onClick={() => handleRemoveService(os.service_id)}>
-                    Удалить
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <Alert className="alert-cosmic">
-            В заявке нет инструментов.{' '}
-            <Link to="/instruments">Добавьте инструменты из каталога</Link>
-          </Alert>
-        )}
+      <div className="calc-header">
+        <h2>Заявка #{order.id}</h2>
+        <span className={`calc-status status-${order.status}`}>{statusLabel[order.status] || order.status}</span>
       </div>
 
-      {/* Действия */}
-      {order && order.status === 'черновик' && (
-        <div className="order-actions">
-          <Button className="btn-cosmic" onClick={handleFormOrder}>Сформировать заявку</Button>
-          <Button className="btn-danger-cosmic" onClick={handleDeleteOrder}>Удалить заявку</Button>
-          <Link to="/instruments"><Button variant="outline-info">Добавить ещё</Button></Link>
+      <div className="calc-info">
+        <p><strong>Дата создания:</strong> {new Date(order.created_at).toLocaleString()}</p>
+        {order.formation_date && <p><strong>Дата формирования:</strong> {new Date(order.formation_date).toLocaleString()}</p>}
+        {order.completion_date && <p><strong>Дата завершения:</strong> {new Date(order.completion_date).toLocaleString()}</p>}
+        {order.total_mass != null && <p><strong>Итоговая масса:</strong> {order.total_mass} M_J</p>}
+      </div>
+
+      {isDraft && (
+        <div className="calc-notes mb-3">
+          <Form.Group>
+            <Form.Label style={{ color: '#ccc' }}>Примечания к заявке</Form.Label>
+            <Form.Control as="textarea" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className="filter-input" />
+          </Form.Group>
         </div>
       )}
 
+      {/* 5 кнопок управления заявкой */}
+      <div className="calc-actions mb-4">
+        {isDraft && (
+          <>
+            <Button className="btn-cosmic" onClick={handleUpdateOrder} disabled={actionLoading}>Сохранить заявку</Button>
+            <Button variant="success" onClick={handleFormOrder} disabled={actionLoading}>Сформировать</Button>
+            <Button variant="danger" onClick={handleDeleteOrder} disabled={actionLoading}>Удалить заявку</Button>
+          </>
+        )}
+        <Link to="/orders"><Button variant="outline-secondary">К списку заявок</Button></Link>
+        <Link to="/instruments"><Button variant="outline-info">К инструментам</Button></Link>
+      </div>
+
+      <h4 style={{ color: '#ddd' }}>Инструменты в заявке ({order.services?.length || 0})</h4>
+
+      {order.services && order.services.length > 0 ? (
+        <Table variant="dark" striped bordered hover responsive className="mt-3">
+          <thead>
+            <tr>
+              <th>Инструмент</th>
+              <th>Экзопланета</th>
+              <th>Масса звезды (M☉)</th>
+              <th>Период (дн)</th>
+              <th>Амплитуда (м/с)</th>
+              <th>Наклон (°)</th>
+              <th>Расч. масса</th>
+              {isDraft && <th>Действия</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {order.services.map((s) => (
+              <tr key={s.service_id}>
+                <td>
+                  <div className="d-flex align-items-center gap-2">
+                    <img src={s.service?.image_url || DEFAULT_IMAGE} alt="" width={32} height={32} style={{ borderRadius: 4, objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = DEFAULT_IMAGE; }} />
+                    {s.service?.name || `#${s.service_id}`}
+                  </div>
+                </td>
+                {editingService === s.service_id ? (
+                  <>
+                    <td><Form.Control size="sm" value={editForm.exoplanet_name} onChange={(e) => setEditForm({ ...editForm, exoplanet_name: e.target.value })} /></td>
+                    <td><Form.Control size="sm" type="number" step="0.01" value={editForm.star_mass} onChange={(e) => setEditForm({ ...editForm, star_mass: +e.target.value })} /></td>
+                    <td><Form.Control size="sm" type="number" step="0.1" value={editForm.orbital_period} onChange={(e) => setEditForm({ ...editForm, orbital_period: +e.target.value })} /></td>
+                    <td><Form.Control size="sm" type="number" step="0.1" value={editForm.velocity_amplitude} onChange={(e) => setEditForm({ ...editForm, velocity_amplitude: +e.target.value })} /></td>
+                    <td><Form.Control size="sm" type="number" step="0.1" value={editForm.inclination} onChange={(e) => setEditForm({ ...editForm, inclination: +e.target.value })} /></td>
+                    <td>—</td>
+                    <td>
+                      <Button size="sm" variant="success" onClick={handleSaveServiceParams} disabled={actionLoading}>OK</Button>{' '}
+                      <Button size="sm" variant="secondary" onClick={() => setEditingService(null)}>Отмена</Button>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td>{s.exoplanet_name}</td>
+                    <td>{s.star_mass}</td>
+                    <td>{s.orbital_period}</td>
+                    <td>{s.velocity_amplitude}</td>
+                    <td>{s.inclination}</td>
+                    <td>{s.calculated_mass != null ? `${s.calculated_mass} M_J` : '—'}</td>
+                    {isDraft && (
+                      <td>
+                        <Button size="sm" variant="outline-warning" onClick={() => startEdit(s)} disabled={actionLoading}>Изменить</Button>{' '}
+                        <Button size="sm" variant="outline-danger" onClick={() => handleRemoveService(s.service_id)} disabled={actionLoading}>Удалить</Button>
+                      </td>
+                    )}
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      ) : (
+        <Alert variant="info" className="mt-3">В заявке нет инструментов.</Alert>
+      )}
     </div>
   );
 };

@@ -13,6 +13,7 @@ const LABELS: Record<string, string> = {
   orders: 'Мои заявки',
   login: 'Вход',
   register: 'Регистрация',
+  profile: 'Личный кабинет',
 };
 
 const Breadcrumbs = () => {

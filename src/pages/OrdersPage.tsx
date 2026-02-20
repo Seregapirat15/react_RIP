@@ -1,213 +1,100 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
-import { fetchOrders, fetchOrderById, isAuthenticated } from '../services/api';
-import { Order } from '../types';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Table, Button, Spinner, Alert, Form, Row, Col } from 'react-bootstrap';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchExoplanetCalculations, setOrdersFilterStatus, setOrdersFilterDateFrom, setOrdersFilterDateTo } from '../store/ordersSlice';
 import './OrdersPage.css';
 
-const DEFAULT_IMAGE = '/placeholder-service.svg';
-
 const OrdersPage = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [statusFilter, setStatusFilter] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
+  const { items, loading, error, filterStatus, filterDateFrom, filterDateTo } = useAppSelector((s) => s.orders);
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      loadOrders();
-    } else {
-      setLoading(false);
-    }
-  }, []);
+    if (!isAuthenticated) { navigate('/login', { replace: true }); return; }
+    dispatch(fetchExoplanetCalculations({ status: filterStatus || undefined, date_from: filterDateFrom || undefined, date_to: filterDateTo || undefined }));
+  }, [isAuthenticated, navigate, dispatch, filterStatus, filterDateFrom, filterDateTo]);
 
-  const loadOrders = async () => {
-    setLoading(true);
-    try {
-      const list = await fetchOrders();
-      const detailed = await Promise.all(
-        list.map((o) => fetchOrderById(o.id).catch(() => o))
-      );
-      setOrders(detailed);
-    } catch {
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    dispatch(fetchExoplanetCalculations({ status: filterStatus || undefined, date_from: filterDateFrom || undefined, date_to: filterDateTo || undefined }));
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = DEFAULT_IMAGE;
+  const statusLabel: Record<string, string> = {
+    'черновик': 'Черновик', 'draft': 'Черновик', 'сформирован': 'Сформирована', 'formed': 'Сформирована',
+    'завершён': 'Завершена', 'completed': 'Завершена', 'отклонён': 'Отклонена', 'rejected': 'Отклонена',
   };
-
-  const filteredOrders = orders.filter((o) => {
-    if (statusFilter && o.status !== statusFilter) return false;
-    if (dateFrom && o.formation_date) {
-      if (new Date(o.formation_date) < new Date(dateFrom)) return false;
-    }
-    if (dateTo && o.formation_date) {
-      if (new Date(o.formation_date) > new Date(dateTo + 'T23:59:59')) return false;
-    }
-    return true;
-  });
-
-  const handleReset = () => {
-    setStatusFilter('');
-    setDateFrom('');
-    setDateTo('');
-  };
-
-  const statusLabel = (s: string) => {
-    const map: Record<string, string> = {
-      'черновик': 'Черновик',
-      'сформирован': 'Сформирована',
-      'завершён': 'Завершена',
-      'отклонён': 'Отклонена',
-    };
-    return map[s] || s;
-  };
-
-  if (!isAuthenticated()) {
-    return (
-      <div className="orders-page">
-        <h1 className="orders-title">Мои заявки</h1>
-        <Alert className="alert-cosmic">
-          Для просмотра заявок необходимо авторизоваться.
-        </Alert>
-        <div className="d-flex gap-3">
-          <Link to="/login"><Button className="btn-cosmic">Войти</Button></Link>
-          <Link to="/register"><Button variant="outline-info">Зарегистрироваться</Button></Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-cosmic"></div>
-        <p className="mt-3" style={{ color: '#aaa' }}>Загрузка заявок...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="orders-page">
-      <h1 className="orders-title">Мои заявки</h1>
+      <h2 className="page-heading">Мои заявки на расчёт</h2>
 
-      {/* Фильтры */}
-      <div className="orders-filters section-cosmic">
+      <Form onSubmit={handleSearch} className="mb-4">
         <Row className="align-items-end g-3">
-          <Col md={3}>
-            <Form.Label className="label-cosmic">Статус</Form.Label>
-            <Form.Select className="input-cosmic" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="">Все</option>
-              <option value="сформирован">Сформирована</option>
-              <option value="завершён">Завершена</option>
-              <option value="отклонён">Отклонена</option>
-            </Form.Select>
+          <Col md={3} sm={6}>
+            <Form.Group>
+              <Form.Label className="filter-label">Статус</Form.Label>
+              <Form.Select className="filter-input" value={filterStatus} onChange={(e) => dispatch(setOrdersFilterStatus(e.target.value))}>
+                <option value="">Все</option>
+                <option value="сформирован">Сформирована</option>
+                <option value="завершён">Завершена</option>
+                <option value="отклонён">Отклонена</option>
+              </Form.Select>
+            </Form.Group>
           </Col>
-          <Col md={3}>
-            <Form.Label className="label-cosmic">Дата формирования от</Form.Label>
-            <Form.Control type="date" className="input-cosmic" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          <Col md={3} sm={6}>
+            <Form.Group>
+              <Form.Label className="filter-label">Дата формирования от</Form.Label>
+              <Form.Control type="date" className="filter-input" value={filterDateFrom} onChange={(e) => dispatch(setOrdersFilterDateFrom(e.target.value))} />
+            </Form.Group>
           </Col>
-          <Col md={3}>
-            <Form.Label className="label-cosmic">Дата формирования до</Form.Label>
-            <Form.Control type="date" className="input-cosmic" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          <Col md={3} sm={6}>
+            <Form.Group>
+              <Form.Label className="filter-label">Дата формирования до</Form.Label>
+              <Form.Control type="date" className="filter-input" value={filterDateTo} onChange={(e) => dispatch(setOrdersFilterDateTo(e.target.value))} />
+            </Form.Group>
           </Col>
-          <Col md={3}>
-            <Button variant="outline-secondary" className="w-100" onClick={handleReset}>Сбросить</Button>
+          <Col md={3} sm={6}>
+            <Button className="btn-cosmic" type="submit">Найти</Button>
           </Col>
         </Row>
-      </div>
+      </Form>
 
-      {/* Список заявок */}
-      {filteredOrders.length === 0 ? (
-        <Alert className="alert-cosmic mt-4">
-          Заявок не найдено.{' '}
-          <Link to="/instruments">Перейти к каталогу инструментов</Link>
-        </Alert>
-      ) : (
-        <div className="orders-list">
-          {filteredOrders.map((order) => (
-            <div key={order.id} className="order-card section-cosmic">
-              {/* Шапка карточки */}
-              <div className="order-card-header">
-                <h2 className="order-card-title">
-                  <Link to={`/calculation/${order.id}`}>Расчёт №{order.id}</Link>
-                </h2>
-                <span className={`status-badge ${order.status}`}>{statusLabel(order.status)}</span>
-              </div>
+      {loading && <div className="text-center py-4"><Spinner animation="border" variant="primary" /><p className="mt-2" style={{ color: '#aaa' }}>Загрузка заявок...</p></div>}
+      {error && <Alert variant="danger">{error}</Alert>}
 
-              {/* Мета-информация */}
-              <div className="order-card-meta">
-                <div className="meta-item">
-                  <span className="meta-label">Дата создания</span>
-                  <span className="meta-value">{new Date(order.created_at).toLocaleDateString('ru-RU')}</span>
-                </div>
-                {order.formation_date && (
-                  <div className="meta-item">
-                    <span className="meta-label">Дата формирования</span>
-                    <span className="meta-value">{new Date(order.formation_date).toLocaleDateString('ru-RU')}</span>
-                  </div>
-                )}
-                {order.total_mass != null && order.total_mass > 0 && (
-                  <div className="meta-item meta-highlight">
-                    <span className="meta-label">Суммарная масса</span>
-                    <span className="meta-value mass-value">{order.total_mass.toFixed(4)} M<sub>J</sub></span>
-                  </div>
-                )}
-              </div>
+      {!loading && items.length === 0 && <Alert variant="info">Заявки не найдены.</Alert>}
 
-              {/* Таблица м-м: инструменты с параметрами */}
-              {order.services && order.services.length > 0 && (
-                <div className="order-card-services">
-                  <table className="mm-table">
-                    <thead>
-                      <tr>
-                        <th></th>
-                        <th>Инструмент</th>
-                        <th>Экзопланета</th>
-                        <th>Масса звезды</th>
-                        <th>Период (дни)</th>
-                        <th>Амплитуда (м/с)</th>
-                        <th>Наклон</th>
-                        <th>Результат (M<sub>J</sub>)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {order.services.map((os) => (
-                        <tr key={os.service_id}>
-                          <td className="mm-image-cell">
-                            <img
-                              src={os.service?.image_url || DEFAULT_IMAGE}
-                              onError={handleImageError}
-                              alt={os.service?.name || ''}
-                              className="mm-thumb"
-                            />
-                          </td>
-                          <td className="mm-name">{os.service?.name || `#${os.service_id}`}</td>
-                          <td>{os.exoplanet_name || '—'}</td>
-                          <td>{os.star_mass} M&#9788;</td>
-                          <td>{os.orbital_period}</td>
-                          <td>{os.velocity_amplitude}</td>
-                          <td>{os.inclination}°</td>
-                          <td className="mm-result">
-                            {os.calculated_mass != null
-                              ? <span className="mass-calculated">{os.calculated_mass.toFixed(4)}</span>
-                              : <span className="mass-pending">—</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+      {!loading && items.length > 0 && (
+        <Table variant="dark" striped bordered hover responsive>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Статус</th>
+              <th>Создана</th>
+              <th>Сформирована</th>
+              <th>Завершена</th>
+              <th>Инструменты</th>
+              <th>Итог. масса</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((o) => (
+              <tr key={o.id}>
+                <td>{o.id}</td>
+                <td><span className={`order-status status-${o.status}`}>{statusLabel[o.status] || o.status}</span></td>
+                <td>{new Date(o.created_at).toLocaleDateString()}</td>
+                <td>{o.formation_date ? new Date(o.formation_date).toLocaleDateString() : '—'}</td>
+                <td>{o.completion_date ? new Date(o.completion_date).toLocaleDateString() : '—'}</td>
+                <td>{o.services?.length ?? '—'}</td>
+                <td>{o.total_mass != null ? `${o.total_mass} M_J` : '—'}</td>
+                <td><Link to={`/calculation/${o.id}`}><Button size="sm" className="btn-cosmic">Открыть</Button></Link></td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       )}
     </div>
   );

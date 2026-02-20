@@ -1,76 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { Form, Button, Alert } from 'react-bootstrap';
-import { login } from '../services/api';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { loginExoplanetUser, clearAuthError } from '../store/authSlice';
 import './AuthPages.css';
 
 const LoginPage = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [loginField, setLoginField] = useState('');
+  const { loading, error, isAuthenticated } = useAppSelector((s) => s.auth);
+
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isAuthenticated) navigate('/instruments', { replace: true });
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => () => { dispatch(clearAuthError()); }, [dispatch]);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await login({ login: loginField, password });
-      navigate('/', { replace: true });
-      window.location.reload();
-    } catch (err: unknown) {
-      const status = (err as { status?: number }).status;
-      setError(status === 401 ? 'Неверный логин или пароль' : 'Ошибка входа. Проверьте, что бэкенд запущен.');
-    } finally {
-      setLoading(false);
-    }
+    dispatch(loginExoplanetUser({ login, password }));
   };
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
-        <h2 className="auth-title">Вход</h2>
-        <p className="auth-subtitle">Войдите, чтобы создавать и просматривать заявки</p>
-
-        {error && <Alert variant="danger" className="auth-alert">{error}</Alert>}
-
+      <div className="auth-card card-cosmic">
+        <h2 className="auth-title">Вход в систему</h2>
+        {error && <Alert variant="danger">{error}</Alert>}
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label className="auth-label">Логин</Form.Label>
-            <Form.Control
-              type="text"
-              className="input-cosmic"
-              placeholder="Введите логин"
-              value={loginField}
-              onChange={(e) => setLoginField(e.target.value)}
-              required
-              autoComplete="username"
-            />
+            <Form.Control className="auth-input" value={login} onChange={(e) => setLogin(e.target.value)} required />
           </Form.Group>
-
-          <Form.Group className="mb-4">
+          <Form.Group className="mb-3">
             <Form.Label className="auth-label">Пароль</Form.Label>
-            <Form.Control
-              type="password"
-              className="input-cosmic"
-              placeholder="Введите пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
+            <Form.Control className="auth-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </Form.Group>
-
-          <Button type="submit" className="btn-cosmic w-100 auth-btn" disabled={loading}>
-            {loading ? 'Вход...' : 'Войти'}
+          <Button className="btn-cosmic w-100" type="submit" disabled={loading}>
+            {loading ? <Spinner size="sm" animation="border" /> : 'Войти'}
           </Button>
         </Form>
-
-        <p className="auth-footer">
+        <div className="auth-footer">
           Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
-        </p>
+        </div>
       </div>
     </div>
   );

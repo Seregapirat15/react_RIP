@@ -47,10 +47,6 @@ const InstrumentDetailPage = () => {
     }
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = DEFAULT_IMAGE;
-  };
-
   if (loading) {
     return (
       <div className="text-center py-5">
