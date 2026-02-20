@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ROUTER_BASENAME } from './config/target';
 import NavigationBar from './components/NavigationBar';
 import Breadcrumbs from './components/Breadcrumbs';
 import HomePage from './pages/HomePage';
@@ -14,7 +15,7 @@ import './App.css';
 
 function App() {
   return (
-    <Router>
+    <Router basename={ROUTER_BASENAME}>
       <div className="app">
         <NavigationBar />
         <Container fluid className="main-container">

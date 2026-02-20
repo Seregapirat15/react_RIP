@@ -1,6 +1,5 @@
 import { Instrument, InstrumentFilter, CartIcon, Order, AddToOrderData, User, LoginData, RegisterData } from '../types';
-
-const API_BASE_URL = '/api';
+import { API_BASE_URL } from '../config/target';
 
 // Получение токена из localStorage
 function getAuthToken(): string | null {

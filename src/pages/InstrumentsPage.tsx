@@ -1,68 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Button, Alert, Row, Col, InputGroup } from 'react-bootstrap';
 import { fetchInstruments, fetchCartIcon, addToOrder, isAuthenticated } from '../services/api';
 import { Instrument, CartIcon } from '../types';
 import { MOCK_INSTRUMENTS } from '../data/mockData';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { store } from '../store';
+import {
+  setSearch, setType, setMinAccuracy, setMaxAccuracy, setDateFrom, setDateTo,
+  setFiltersExpanded, resetFilters,
+} from '../store/filterSlice';
 import './InstrumentsPage.css';
 
 const DEFAULT_IMAGE = '/placeholder-service.svg';
 
 const InstrumentsPage = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const {
+    search: searchQuery,
+    type: typeFilter,
+    minAccuracy,
+    maxAccuracy,
+    dateFrom,
+    dateTo,
+    filtersExpanded,
+  } = useAppSelector((state) => state.instrumentFilters);
+
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingMock, setUsingMock] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [minAccuracy, setMinAccuracy] = useState<string>('');
-  const [maxAccuracy, setMaxAccuracy] = useState<string>('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
-
   const [cart, setCart] = useState<CartIcon | null>(null);
 
-  useEffect(() => {
-    loadInstruments();
-    loadCart();
-  }, []);
-
-  const loadInstruments = async () => {
+  const loadInstruments = useCallback(async () => {
+    const { search, type, minAccuracy: minA, maxAccuracy: maxA, dateFrom: df, dateTo: dt } =
+      store.getState().instrumentFilters;
     setLoading(true);
     try {
       const data = await fetchInstruments({
-        search: searchQuery || undefined,
-        type: typeFilter || undefined,
-        min_accuracy: minAccuracy ? Number(minAccuracy) : undefined,
-        max_accuracy: maxAccuracy ? Number(maxAccuracy) : undefined,
-        date_from: dateFrom || undefined,
-        date_to: dateTo || undefined,
+        search: search || undefined,
+        type: type || undefined,
+        min_accuracy: minA ? Number(minA) : undefined,
+        max_accuracy: maxA ? Number(maxA) : undefined,
+        date_from: df || undefined,
+        date_to: dt || undefined,
       });
       setInstruments(data);
       setUsingMock(false);
     } catch {
       let mockData = [...MOCK_INSTRUMENTS];
-      if (searchQuery) {
+      if (search) {
         mockData = mockData.filter(i =>
-          i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          i.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+          i.name.toLowerCase().includes(search.toLowerCase()) ||
+          i.full_name.toLowerCase().includes(search.toLowerCase())
         );
       }
-      if (typeFilter) mockData = mockData.filter(i => i.type === typeFilter);
-      if (minAccuracy) mockData = mockData.filter(i => i.accuracy >= Number(minAccuracy));
-      if (maxAccuracy) mockData = mockData.filter(i => i.accuracy <= Number(maxAccuracy));
+      if (type) mockData = mockData.filter(i => i.type === type);
+      if (minA) mockData = mockData.filter(i => i.accuracy >= Number(minA));
+      if (maxA) mockData = mockData.filter(i => i.accuracy <= Number(maxA));
       setInstruments(mockData);
       setUsingMock(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const loadCart = async () => {
+  useEffect(() => {
+    loadInstruments();
+  }, [loadInstruments]);
+
+  const loadCart = useCallback(async () => {
     if (!isAuthenticated()) return;
     try {
       const cartData = await fetchCartIcon();
@@ -70,7 +78,11 @@ const InstrumentsPage = () => {
     } catch {
       setCart(null);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadCart();
+  }, [loadCart]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,13 +90,8 @@ const InstrumentsPage = () => {
   };
 
   const handleReset = () => {
-    setSearchQuery('');
-    setTypeFilter('');
-    setMinAccuracy('');
-    setMaxAccuracy('');
-    setDateFrom('');
-    setDateTo('');
-    fetchInstruments({}).then(setInstruments).catch(() => setInstruments(MOCK_INSTRUMENTS));
+    dispatch(resetFilters());
+    loadInstruments();
   };
 
   const handleAddToOrder = async (instrumentId: number) => {
@@ -171,7 +178,7 @@ const InstrumentsPage = () => {
                   type="text"
                   placeholder="Введите название..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => dispatch(setSearch(e.target.value))}
                   className="filter-input"
                 />
               </Form.Group>
@@ -181,7 +188,7 @@ const InstrumentsPage = () => {
                 <Form.Label className="filter-label">Тип инструмента</Form.Label>
                 <Form.Select
                   value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
+                  onChange={(e) => dispatch(setType(e.target.value))}
                   className="filter-input"
                 >
                   <option value="">Все типы</option>
@@ -194,7 +201,7 @@ const InstrumentsPage = () => {
               <div className="d-flex gap-2">
                 <Button className="btn-cosmic filter-btn" type="submit">Найти</Button>
                 <Button variant="outline-secondary" className="filter-btn" onClick={handleReset}>Сброс</Button>
-                <Button variant="outline-info" className="filter-btn" onClick={() => setFiltersExpanded(!filtersExpanded)}>
+                <Button variant="outline-info" className="filter-btn" onClick={() => dispatch(setFiltersExpanded(!filtersExpanded))}>
                   {filtersExpanded ? 'Скрыть' : 'Ещё'}
                 </Button>
               </div>
@@ -206,7 +213,7 @@ const InstrumentsPage = () => {
                 <Form.Group>
                   <Form.Label className="filter-label">Точность от (м/с)</Form.Label>
                   <InputGroup>
-                    <Form.Control type="number" step="0.01" placeholder="мин" value={minAccuracy} onChange={(e) => setMinAccuracy(e.target.value)} className="filter-input" />
+                    <Form.Control type="number" step="0.01" placeholder="мин" value={minAccuracy} onChange={(e) => dispatch(setMinAccuracy(e.target.value))} className="filter-input" />
                   </InputGroup>
                 </Form.Group>
               </Col>
@@ -214,20 +221,20 @@ const InstrumentsPage = () => {
                 <Form.Group>
                   <Form.Label className="filter-label">Точность до (м/с)</Form.Label>
                   <InputGroup>
-                    <Form.Control type="number" step="0.01" placeholder="макс" value={maxAccuracy} onChange={(e) => setMaxAccuracy(e.target.value)} className="filter-input" />
+                    <Form.Control type="number" step="0.01" placeholder="макс" value={maxAccuracy} onChange={(e) => dispatch(setMaxAccuracy(e.target.value))} className="filter-input" />
                   </InputGroup>
                 </Form.Group>
               </Col>
               <Col md={3} sm={6}>
                 <Form.Group>
                   <Form.Label className="filter-label">Дата от</Form.Label>
-                  <Form.Control type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="filter-input" />
+                  <Form.Control type="date" value={dateFrom} onChange={(e) => dispatch(setDateFrom(e.target.value))} className="filter-input" />
                 </Form.Group>
               </Col>
               <Col md={3} sm={6}>
                 <Form.Group>
                   <Form.Label className="filter-label">Дата до</Form.Label>
-                  <Form.Control type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="filter-input" />
+                  <Form.Control type="date" value={dateTo} onChange={(e) => dispatch(setDateTo(e.target.value))} className="filter-input" />
                 </Form.Group>
               </Col>
             </Row>

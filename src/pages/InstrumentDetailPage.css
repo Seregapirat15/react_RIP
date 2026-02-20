@@ -177,10 +177,17 @@
   font-size: 1.1em;
 }
 
+/* Lab 6: Адаптивность — specs: 2 колонки ≥576px, 1 колонка на мобильном */
 .specs-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
+}
+
+@media (min-width: 576px) {
+  .specs-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .spec-item {
@@ -224,9 +231,16 @@
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
 }
 
-/* Responsive */
+/* Lab 6: Адаптивность — контейнер шириной 420px на мобильном, 480px на планшете */
 @media (min-width: 768px) {
   .vibes-container {
-    max-width: 380px;
+    max-width: 480px;
+  }
+}
+
+@media (max-width: 575px) {
+  .vibes-stats {
+    flex-wrap: wrap;
+    gap: 10px;
   }
 }

@@ -78,7 +78,9 @@
   line-height: 1.6;
 }
 
-@media (max-width: 768px) {
+/* Lab 6: Адаптивность главной — breakpoint 768px.
+   Карточки: md (≥768px) — 3 в ряд (Col md={4}), sm — 1 колонка */
+@media (max-width: 767px) {
   .hero-title {
     font-size: 1.8em;
   }
@@ -89,5 +91,15 @@
 
   .hero-section {
     padding: 40px 20px;
+  }
+
+  .hero-description {
+    font-size: 0.95em;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-section {
+    padding: 60px 40px;
   }
 }
