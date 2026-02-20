@@ -2,8 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// base для GitHub Pages (имя репозитория). Для локальной разработки используйте base: '/'
-const BASE = process.env.GITHUB_PAGES ? '/RIP_2025/' : '/'
+// base для GitHub Pages — должен совпадать с путём в URL (имя репозитория)
+const BASE = process.env.GITHUB_PAGES ? '/react_RIP/' : '/'
 
 // https://vitejs.dev/config/
 export default defineConfig({
