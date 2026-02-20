@@ -4,6 +4,27 @@
   margin: 0 auto;
 }
 
+.orders-empty-state {
+  margin-top: 24px;
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(79, 172, 254, 0.3);
+  border-radius: 12px;
+  text-align: center;
+  min-height: 160px;
+}
+
+.orders-empty-text {
+  font-size: 1.1em;
+  color: #e0e0e0;
+  margin-bottom: 8px;
+}
+
+.orders-empty-hint {
+  font-size: 0.95em;
+  color: #aaa;
+}
+
 .orders-title {
   font-size: 2em;
   font-weight: 700;

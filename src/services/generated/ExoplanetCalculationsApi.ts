@@ -20,8 +20,8 @@ export class ExoplanetCalculationsApi {
   static async getExoplanetCalculations(filters: ExoplanetOrdersFilter = {}): Promise<Order[]> {
     const params = new URLSearchParams();
     if (filters.status) params.append('status', filters.status);
-    if (filters.date_from) params.append('date_from', filters.date_from);
-    if (filters.date_to) params.append('date_to', filters.date_to);
+    if (filters.date_from) params.append('formation_from', filters.date_from);
+    if (filters.date_to) params.append('formation_to', filters.date_to);
     const qs = params.toString();
     const { data } = await axiosInstance.get<Order[]>(`/orders${qs ? `?${qs}` : ''}`);
     return data;

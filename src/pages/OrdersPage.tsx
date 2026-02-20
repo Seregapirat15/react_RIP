@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Table, Button, Spinner, Alert, Form, Row, Col } from 'react-bootstrap';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchExoplanetCalculations, setOrdersFilterStatus, setOrdersFilterDateFrom, setOrdersFilterDateTo } from '../store/ordersSlice';
+import { fetchExoplanetCalculations, setOrdersFilterStatus, setOrdersFilterDateFrom, setOrdersFilterDateTo, resetOrdersFilters } from '../store/ordersSlice';
 import './OrdersPage.css';
 
 const OrdersPage = () => {
@@ -57,16 +57,25 @@ const OrdersPage = () => {
           </Col>
           <Col md={3} sm={6}>
             <Button className="btn-cosmic" type="submit">Найти</Button>
+            <Button variant="outline-secondary" type="button" className="ms-2" onClick={() => dispatch(resetOrdersFilters())}>
+              Сброс
+            </Button>
           </Col>
         </Row>
       </Form>
 
       {loading && <div className="text-center py-4"><Spinner animation="border" variant="primary" /><p className="mt-2" style={{ color: '#aaa' }}>Загрузка заявок...</p></div>}
-      {error && <Alert variant="danger">{error}</Alert>}
+      {!loading && error && <Alert variant="danger">{error}</Alert>}
 
-      {!loading && items.length === 0 && <Alert variant="info">Заявки не найдены.</Alert>}
+      {!loading && !error && (items?.length ?? 0) === 0 && (
+        <div className="orders-empty-state">
+          <p className="orders-empty-text">Заявок по выбранным критериям не найдено.</p>
+          <p className="orders-empty-hint">Выберите «Все» в фильтре по статусу или нажмите «Сброс».</p>
+          <Button className="btn-cosmic mt-2" onClick={() => dispatch(resetOrdersFilters())}>Сбросить фильтры</Button>
+        </div>
+      )}
 
-      {!loading && items.length > 0 && (
+      {!loading && !error && (items?.length ?? 0) > 0 && (
         <Table variant="dark" striped bordered hover responsive>
           <thead>
             <tr>

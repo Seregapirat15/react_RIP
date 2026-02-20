@@ -11,15 +11,13 @@ export interface OrdersState {
   filterDateTo: string;
 }
 
-const today = new Date().toISOString().slice(0, 10);
-
 const initialState: OrdersState = {
   items: [],
   loading: false,
   error: null,
   filterStatus: '',
-  filterDateFrom: today,
-  filterDateTo: today,
+  filterDateFrom: '', // пусто = без ограничения по дате
+  filterDateTo: '',
 };
 
 export const fetchExoplanetCalculations = createAsyncThunk(
@@ -41,6 +39,11 @@ const ordersSlice = createSlice({
     setOrdersFilterStatus: (state, action) => { state.filterStatus = action.payload; },
     setOrdersFilterDateFrom: (state, action) => { state.filterDateFrom = action.payload; },
     setOrdersFilterDateTo: (state, action) => { state.filterDateTo = action.payload; },
+    resetOrdersFilters: (state) => {
+      state.filterStatus = '';
+      state.filterDateFrom = '';
+      state.filterDateTo = '';
+    },
     resetOrdersState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -48,7 +51,7 @@ const ordersSlice = createSlice({
       .addCase(fetchExoplanetCalculations.pending, (state) => { state.loading = true; state.error = null; })
       .addCase(fetchExoplanetCalculations.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.items = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchExoplanetCalculations.rejected, (state, action) => {
         state.loading = false;
@@ -57,5 +60,5 @@ const ordersSlice = createSlice({
   },
 });
 
-export const { setOrdersFilterStatus, setOrdersFilterDateFrom, setOrdersFilterDateTo, resetOrdersState } = ordersSlice.actions;
+export const { setOrdersFilterStatus, setOrdersFilterDateFrom, setOrdersFilterDateTo, resetOrdersFilters, resetOrdersState } = ordersSlice.actions;
 export default ordersSlice.reducer;
