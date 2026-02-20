@@ -40,6 +40,8 @@ export interface Order {
   result?: string;
   total_mass?: number;
   notes?: string;
+  calculated_count?: number; // Lab8: число м-м с рассчитанной массой
+  mm_total?: number; // всего записей м-м
   services?: OrderService[];
 }
 

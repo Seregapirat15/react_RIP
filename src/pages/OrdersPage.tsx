@@ -79,13 +79,13 @@ const OrdersPage = () => {
         <Table variant="dark" striped bordered hover responsive>
           <thead>
             <tr>
-              <th>#</th>
+              <th>№</th>
               <th>Статус</th>
               <th>Создана</th>
               <th>Сформирована</th>
               <th>Завершена</th>
-              <th>Инструменты</th>
-              <th>Итог. масса</th>
+              <th>Прогресс расчёта</th>
+              <th>Итоговая масса</th>
               <th></th>
             </tr>
           </thead>
@@ -97,8 +97,17 @@ const OrdersPage = () => {
                 <td>{new Date(o.created_at).toLocaleDateString()}</td>
                 <td>{o.formation_date ? new Date(o.formation_date).toLocaleDateString() : '—'}</td>
                 <td>{o.completion_date ? new Date(o.completion_date).toLocaleDateString() : '—'}</td>
-                <td>{o.services?.length ?? '—'}</td>
-                <td>{o.total_mass != null ? `${o.total_mass} M_J` : '—'}</td>
+                <td>
+                  {o.calculated_count ?? 0} из {o.mm_total ?? 0}
+                  {(o.mm_total ?? 0) > 0 && (o.calculated_count ?? 0) === (o.mm_total ?? 0) && (
+                    <span className="badge bg-success ms-1">готово</span>
+                  )}
+                </td>
+                <td>
+                  {(o.calculated_count ?? 0) > 0 && o.total_mass != null
+                    ? `${o.total_mass.toFixed(3)} M_J`
+                    : '—'}
+                </td>
                 <td><Link to={`/calculation/${o.id}`}><Button size="sm" className="btn-cosmic">Открыть</Button></Link></td>
               </tr>
             ))}

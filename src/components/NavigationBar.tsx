@@ -104,6 +104,12 @@ const NavigationBar = () => {
                 </Nav.Link>
               )}
 
+              {isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin') && (
+                <Nav.Link as={Link} to="/admin/orders" className={`nav-link-cosmic ${isActive('/admin/orders') ? 'active' : ''}`} onClick={handleClose}>
+                  <span className="nav-icon">&#128736;</span> Модератор
+                </Nav.Link>
+              )}
+
               {isAuthenticated ? (
                 <>
                   <Nav.Link as={Link} to="/profile" className={`nav-link-cosmic ${isActive('/profile') ? 'active' : ''}`} onClick={handleClose}>

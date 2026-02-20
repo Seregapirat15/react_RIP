@@ -211,6 +211,43 @@ export async function fetchCurrentUser(): Promise<User> {
   return apiRequest<User>('/auth/me');
 }
 
+// ==================== АДМИН / МОДЕРАТОР (Lab8) ====================
+
+// Список всех заявок (модератор)
+export async function fetchAdminOrders(filters: {
+  status?: string;
+  formation_from?: string;
+  formation_to?: string;
+  creator_id?: number;
+}): Promise<Order[]> {
+  const params = new URLSearchParams();
+  if (filters.status) params.append('status', filters.status);
+  if (filters.formation_from) params.append('formation_from', filters.formation_from);
+  if (filters.formation_to) params.append('formation_to', filters.formation_to);
+  if (filters.creator_id) params.append('creator_id', String(filters.creator_id));
+  const qs = params.toString();
+  return apiRequest<Order[]>(`/admin/orders${qs ? `?${qs}` : ''}`);
+}
+
+// Завершение заявки (complete/reject)
+export async function completeOrder(
+  orderId: number,
+  action: 'complete' | 'reject',
+  result?: string
+): Promise<{ message: string; status: string }> {
+  return apiRequest(`/orders/${orderId}/complete`, {
+    method: 'PUT',
+    body: JSON.stringify({ action, result }),
+  });
+}
+
+// Lab8: ручной запуск асинхронного расчёта массы
+export async function triggerAsyncCalculation(orderId: number): Promise<{ message: string }> {
+  return apiRequest(`/admin/orders/${orderId}/trigger-calculation`, {
+    method: 'POST',
+  });
+}
+
 // Проверка авторизации
 export function isAuthenticated(): boolean {
   return !!getAuthToken();

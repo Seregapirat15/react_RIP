@@ -18,8 +18,15 @@ export async function loginUser(login: string, password: string): Promise<{ toke
     body: JSON.stringify({ login, password }),
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Ошибка ${res.status}`);
+    const text = await res.text();
+    let msg = `Ошибка ${res.status}`;
+    try {
+      const body = JSON.parse(text);
+      if (body.error) msg = body.error;
+    } catch {
+      if (text) msg = text;
+    }
+    throw new Error(msg);
   }
   return res.json();
 }

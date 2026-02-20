@@ -7,6 +7,7 @@ import InstrumentsPage from './pages/InstrumentsPage';
 import InstrumentDetailPage from './pages/InstrumentDetailPage';
 import CalculationPage from './pages/CalculationPage';
 import OrdersPage from './pages/OrdersPage';
+import AdminOrdersPage from './pages/AdminOrdersPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
@@ -28,6 +29,7 @@ function App() {
             <Route path="/calculation" element={<CalculationPage />} />
             <Route path="/calculation/:id" element={<CalculationPage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/admin/orders" element={<AdminOrdersPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/profile" element={<ProfilePage />} />

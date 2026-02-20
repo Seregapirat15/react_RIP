@@ -1,7 +1,29 @@
 .orders-page {
   padding: 20px 0;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+.page-heading {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+.progress-calc {
+  color: #a0d8ff;
+}
+
+.admin-poll-hint {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 1rem;
+}
+
+.admin-orders .table th {
+  font-weight: 500;
+  color: #ccc;
 }
 
 .orders-empty-state {
