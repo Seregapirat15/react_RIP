@@ -16,8 +16,8 @@ const API_PORT = 8081;
 /** Базовый адрес бэкенда для Tauri */
 export const API_BASE_IP = `http://${BACKEND_IP}:${API_PORT}`;
 
-/** Локальный бэкенд (когда открываем GitHub Pages на том же ПК) */
-const LOCAL_BACKEND_URL = `http://localhost:${API_PORT}/api`;
+/** Локальный бэкенд (когда открываем GitHub Pages на том же ПК). 127.0.0.1 — обход IPv6 localhost */
+const LOCAL_BACKEND_URL = `http://127.0.0.1:${API_PORT}/api`;
 
 /**
  * API_BASE_URL:
