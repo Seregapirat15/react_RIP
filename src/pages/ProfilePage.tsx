@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { updateExoplanetProfile, clearAuthError } from '../store/authSlice';
+import { setAuthLoading, setAuthError, clearAuthError, setUser } from '../store/authSlice';
+import { updateUserProfile } from '../services/userService';
 import './AuthPages.css';
 
 const ProfilePage = () => {
@@ -30,10 +31,18 @@ const ProfilePage = () => {
     if (form.email !== user?.email) payload.email = form.email;
     if (form.password) payload.password = form.password;
     if (Object.keys(payload).length === 0) return;
-    const result = await dispatch(updateExoplanetProfile(payload));
-    if (updateExoplanetProfile.fulfilled.match(result)) {
+
+    dispatch(setAuthLoading(true));
+    dispatch(setAuthError(null));
+    try {
+      const updated = await updateUserProfile(payload);
+      dispatch(setUser(updated));
       setSuccess('Профиль обновлён');
       setForm((prev) => ({ ...prev, password: '' }));
+    } catch (err) {
+      dispatch(setAuthError((err as Error).message || 'Ошибка обновления'));
+    } finally {
+      dispatch(setAuthLoading(false));
     }
   };
 

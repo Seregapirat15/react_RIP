@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import filterReducer from './filterSlice';
+import instrumentsReducer from './instrumentsSlice';
 import authReducer from './authSlice';
 import ordersReducer from './ordersSlice';
 import orderDetailReducer from './orderDetailSlice';
@@ -8,6 +9,7 @@ import cartReducer from './cartSlice';
 export const store = configureStore({
   reducer: {
     instrumentFilters: filterReducer,
+    instruments: instrumentsReducer,
     auth: authReducer,
     orders: ordersReducer,
     orderDetail: orderDetailReducer,

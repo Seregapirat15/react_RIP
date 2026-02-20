@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { loginExoplanetUser, clearAuthError } from '../store/authSlice';
+import { setAuthLoading, setAuthError, clearAuthError, loginSuccess } from '../store/authSlice';
+import { loginUser } from '../services/userService';
 import './AuthPages.css';
 
 const LoginPage = () => {
@@ -19,9 +20,19 @@ const LoginPage = () => {
 
   useEffect(() => () => { dispatch(clearAuthError()); }, [dispatch]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(loginExoplanetUser({ login, password }));
+    dispatch(setAuthLoading(true));
+    dispatch(setAuthError(null));
+    try {
+      const data = await loginUser(login, password);
+      localStorage.setItem('auth_token', data.token);
+      dispatch(loginSuccess(data.user));
+    } catch (err) {
+      dispatch(setAuthError((err as Error).message || 'Ошибка входа'));
+    } finally {
+      dispatch(setAuthLoading(false));
+    }
   };
 
   return (

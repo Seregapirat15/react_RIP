@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Button, Alert, Row, Col, InputGroup, Spinner } from 'react-bootstrap';
-import { ExoplanetInstrumentsApi } from '../services/generated';
-import { Instrument } from '../types';
+import { fetchInstruments } from '../services/instrumentService';
 import { MOCK_INSTRUMENTS } from '../data/mockData';
 import { isTauri } from '../config/target';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
@@ -11,6 +10,7 @@ import {
   setSearch, setType, setMinAccuracy, setMaxAccuracy, setDateFrom, setDateTo,
   setFiltersExpanded, resetFilters,
 } from '../store/filterSlice';
+import { setInstruments, setInstrumentsLoading, setInstrumentsError, resetInstrumentsState } from '../store/instrumentsSlice';
 import { fetchExoplanetCart, addInstrumentToCalculation, clearCartMessages } from '../store/cartSlice';
 import './InstrumentsPage.css';
 
@@ -25,37 +25,42 @@ const InstrumentsPage = () => {
 
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const { cart, addLoading, error: cartError, successMessage: cartSuccess } = useAppSelector((s) => s.cart);
+  const { items: instruments, loading, error: instrumentsError } = useAppSelector((s) => s.instruments);
 
-  const [instruments, setInstruments] = useState<Instrument[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [usingMock, setUsingMock] = useState(false);
-  const [apiFailedInTauri, setApiFailedInTauri] = useState(false);
+  const [usingMock, setUsingMock] = React.useState(false);
+  const [apiFailedInTauri, setApiFailedInTauri] = React.useState(false);
 
   const loadInstruments = useCallback(async () => {
     const { search, type, minAccuracy: minA, maxAccuracy: maxA, dateFrom: df, dateTo: dt } = store.getState().instrumentFilters;
-    setLoading(true);
+    dispatch(setInstrumentsLoading(true));
     try {
-      const data = await ExoplanetInstrumentsApi.getExoplanetInstruments({
+      const data = await fetchInstruments({
         search: search || undefined, type: type || undefined,
         min_accuracy: minA ? Number(minA) : undefined, max_accuracy: maxA ? Number(maxA) : undefined,
         date_from: df || undefined, date_to: dt || undefined,
       });
-      setInstruments(data);
+      dispatch(setInstruments(data));
       setUsingMock(false);
       setApiFailedInTauri(false);
     } catch {
       if (isTauri) {
-        setInstruments([]); setUsingMock(false); setApiFailedInTauri(true);
+        dispatch(setInstruments([]));
+        setUsingMock(false);
+        setApiFailedInTauri(true);
       } else {
         let mockData = [...MOCK_INSTRUMENTS];
         if (search) mockData = mockData.filter(i => i.name.toLowerCase().includes(search.toLowerCase()) || i.full_name.toLowerCase().includes(search.toLowerCase()));
         if (type) mockData = mockData.filter(i => i.type === type);
         if (minA) mockData = mockData.filter(i => i.accuracy >= Number(minA));
         if (maxA) mockData = mockData.filter(i => i.accuracy <= Number(maxA));
-        setInstruments(mockData); setUsingMock(true); setApiFailedInTauri(false);
+        dispatch(setInstruments(mockData));
+        setUsingMock(true);
+        setApiFailedInTauri(false);
       }
-    } finally { setLoading(false); }
-  }, []);
+    } finally {
+      dispatch(setInstrumentsLoading(false));
+    }
+  }, [dispatch]);
 
   useEffect(() => { loadInstruments(); }, [loadInstruments]);
 

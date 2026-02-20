@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { registerExoplanetUser, clearAuthError } from '../store/authSlice';
+import { setAuthLoading, setAuthError, clearAuthError } from '../store/authSlice';
+import { registerUser } from '../services/userService';
 import './AuthPages.css';
 
 const RegisterPage = () => {
@@ -18,9 +19,15 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await dispatch(registerExoplanetUser(form));
-    if (registerExoplanetUser.fulfilled.match(result)) {
+    dispatch(setAuthLoading(true));
+    dispatch(setAuthError(null));
+    try {
+      await registerUser(form.login, form.password, form.first_name, form.last_name, form.email);
       navigate('/login');
+    } catch (err) {
+      dispatch(setAuthError((err as Error).message || 'Ошибка регистрации'));
+    } finally {
+      dispatch(setAuthLoading(false));
     }
   };
 

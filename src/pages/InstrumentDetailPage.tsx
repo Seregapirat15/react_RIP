@@ -1,51 +1,52 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button, Alert } from 'react-bootstrap';
-import { fetchInstrumentById } from '../services/api';
-import { Instrument } from '../types';
+import { fetchInstrumentById } from '../services/instrumentService';
 import { MOCK_INSTRUMENTS } from '../data/mockData';
 import { isTauri } from '../config/target';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { setCurrentInstrument, setInstrumentsLoading, setInstrumentsError } from '../store/instrumentsSlice';
 import './InstrumentDetailPage.css';
 
 const DEFAULT_IMAGE = '/placeholder-service.svg';
-/** Видео по умолчанию для всех карточек (как у id 2) */
 const DEFAULT_VIDEO = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
 
 const InstrumentDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [instrument, setInstrument] = useState<Instrument | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const dispatch = useAppDispatch();
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const { current: instrument, loading, error } = useAppSelector((s) => s.instruments);
+
   useEffect(() => {
-    if (id) {
-      loadInstrument(parseInt(id));
-    }
-  }, [id]);
+    if (!id) return;
+    const instrumentId = parseInt(id);
 
-  const loadInstrument = async (instrumentId: number) => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const data = await fetchInstrumentById(instrumentId);
-      setInstrument(data);
-    } catch {
-      if (isTauri) {
-        setError('Инструмент не найден или бэкенд недоступен. Запустите backend_RIP на порту 8081.');
-      } else {
-        const mockInstrument = MOCK_INSTRUMENTS.find(i => i.id === instrumentId);
-        if (mockInstrument) {
-          setInstrument(mockInstrument);
+    const load = async () => {
+      dispatch(setInstrumentsLoading(true));
+      dispatch(setInstrumentsError(''));
+      try {
+        const data = await fetchInstrumentById(instrumentId);
+        dispatch(setCurrentInstrument(data));
+      } catch {
+        if (isTauri) {
+          dispatch(setInstrumentsError('Инструмент не найден или бэкенд недоступен. Запустите backend_RIP на порту 8081.'));
         } else {
-          setError('Инструмент не найден');
+          const mockInstrument = MOCK_INSTRUMENTS.find(i => i.id === instrumentId);
+          if (mockInstrument) {
+            dispatch(setCurrentInstrument(mockInstrument));
+          } else {
+            dispatch(setInstrumentsError('Инструмент не найден'));
+          }
         }
+      } finally {
+        dispatch(setInstrumentsLoading(false));
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    load();
+    return () => { dispatch(setCurrentInstrument(null)); };
+  }, [id, dispatch]);
 
   if (loading) {
     return (
@@ -72,7 +73,6 @@ const InstrumentDetailPage = () => {
   return (
     <div className="vibes-page">
       <div className="vibes-container">
-        {/* Видео секция — портрет в стиле Vibes/TikTok */}
         <div className="vibes-video-section">
           <video
             key={instrument.id}
@@ -118,7 +118,6 @@ const InstrumentDetailPage = () => {
           </div>
         </div>
 
-        {/* Описание */}
         <div className="vibes-description">
           <p>{instrument.description}</p>
 
@@ -134,7 +133,6 @@ const InstrumentDetailPage = () => {
           </div>
         </div>
 
-        {/* Характеристики */}
         <div className="vibes-specs">
           <h3>Характеристики</h3>
           <div className="specs-grid">

@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Navbar, Nav, Container, Offcanvas } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { logoutExoplanetUser, fetchExoplanetCurrentUser } from '../store/authSlice';
+import { setAuthLoading, loginSuccess, logoutSuccess, resetAuthState } from '../store/authSlice';
 import { resetFilters } from '../store/filterSlice';
+import { resetInstrumentsState } from '../store/instrumentsSlice';
 import { resetCartState } from '../store/cartSlice';
 import { resetOrdersState } from '../store/ordersSlice';
 import { clearOrderDetail } from '../store/orderDetailSlice';
+import { fetchCurrentUser, logoutUser } from '../services/userService';
 import './NavigationBar.css';
 
 const NavigationBar = () => {
@@ -20,14 +22,25 @@ const NavigationBar = () => {
 
   useEffect(() => {
     if (isAuthenticated && !user) {
-      dispatch(fetchExoplanetCurrentUser());
+      (async () => {
+        try {
+          const u = await fetchCurrentUser();
+          dispatch(loginSuccess(u));
+        } catch {
+          localStorage.removeItem('auth_token');
+          dispatch(logoutSuccess());
+        }
+      })();
     }
   }, [isAuthenticated, user, dispatch]);
 
   const handleLogout = async () => {
     handleClose();
-    await dispatch(logoutExoplanetUser());
+    try { await logoutUser(); } catch { /* ignore */ }
+    localStorage.removeItem('auth_token');
+    dispatch(logoutSuccess());
     dispatch(resetFilters());
+    dispatch(resetInstrumentsState());
     dispatch(resetCartState());
     dispatch(resetOrdersState());
     dispatch(clearOrderDetail());

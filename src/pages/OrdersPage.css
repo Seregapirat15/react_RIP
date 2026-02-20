@@ -12,35 +12,31 @@
 }
 
 /* Фильтры */
-.orders-filters {
-  margin-bottom: 24px;
-}
-
-.orders-filters .label-cosmic {
+.orders-page .filter-label {
   color: #e0e0e0;
 }
 
-.orders-filters .input-cosmic,
-.orders-filters .form-select,
-.orders-filters .form-control {
+.orders-page .filter-input,
+.orders-page .form-select,
+.orders-page .form-control {
   background: rgba(255, 255, 255, 0.1) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   color: #fff !important;
 }
 
-.orders-filters .form-select option,
-.orders-filters select option {
+.orders-page .form-select option,
+.orders-page select option {
   background: #1a1a3a;
   color: #e0e0e0;
 }
 
-.orders-filters .btn-outline-secondary {
+.orders-page .btn-outline-secondary {
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
   color: #e0e0e0 !important;
 }
 
-.orders-filters .btn-outline-secondary:hover {
+.orders-page .btn-outline-secondary:hover {
   background: rgba(255, 255, 255, 0.15) !important;
   color: white !important;
 }
